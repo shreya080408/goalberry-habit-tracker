@@ -22,13 +22,13 @@ type Props = {
 export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
   const [name, setName] = useState("");
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
-  const [color, setColor] = useState(HABIT_COLORS[0]);
+  const [color, setColor] = useState<string>(HABIT_COLORS[0]!);
 
   useEffect(() => {
     if (!open) return;
     setName(habit?.name ?? "");
     setDays(habit?.days ?? [0, 1, 2, 3, 4, 5, 6]);
-    setColor(habit?.color ?? HABIT_COLORS[0]);
+    setColor(habit?.color ?? HABIT_COLORS[0]!);
   }, [open, habit]);
 
   const toggleDay = (d: number) =>
@@ -106,7 +106,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
           <Button
             disabled={!canSave}
             onClick={() => {
-              onSubmit({ name, days, color });
+              onSubmit({ name, days, color: color ?? HABIT_COLORS[0]! });
               onOpenChange(false);
             }}
           >

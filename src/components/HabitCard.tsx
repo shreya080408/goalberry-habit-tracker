@@ -63,7 +63,7 @@ export function HabitCard({ habit, onToggle, onEdit, onDelete }: Props) {
             <DropdownMenuItem onClick={onEdit}>
               <Pencil className="size-4" /> Edit
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={onDelete}>
+            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={onDelete}>
               <Trash2 className="size-4" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
