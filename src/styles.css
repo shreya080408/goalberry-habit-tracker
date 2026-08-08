@@ -89,6 +89,13 @@
   --light-green: oklch(0.810 0.119 134.44);
   --sage: oklch(0.630 0.085 139.46);
 
+  /* Habit accent colors (all from the strawberry palette) */
+  --habit-1: oklch(0.624 0.197 24.92);
+  --habit-2: oklch(0.755 0.138 31.38);
+  --habit-3: oklch(0.810 0.119 134.44);
+  --habit-4: oklch(0.630 0.085 139.46);
+  --habit-5: oklch(0.503 0.069 57.30);
+
   --background: oklch(0.98 0.01 55);
   --foreground: oklch(0.25 0.03 57.30);
 
