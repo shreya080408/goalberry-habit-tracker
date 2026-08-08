@@ -62,9 +62,17 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --radius: 0.75rem;
+  --background: oklch(0.985 0.005 106);
+  --foreground: oklch(0.22 0.015 100);
+
+  /* Habit accent palette (customizable) */
+  --habit-1: oklch(0.62 0.14 160);
+  --habit-2: oklch(0.66 0.14 45);
+  --habit-3: oklch(0.6 0.13 250);
+  --habit-4: oklch(0.62 0.16 15);
+  --habit-5: oklch(0.68 0.12 320);
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
