@@ -51,14 +51,14 @@ function Index() {
       <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:py-14">
         <header className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm italic text-muted-foreground">
               {today.toLocaleDateString(undefined, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
               })}
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">Habits</h1>
+            <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight text-foreground">Today's Habits</h1>
             {due > 0 && (
               <p className="mt-1 text-sm text-muted-foreground">
                 {done} of {due} done today
