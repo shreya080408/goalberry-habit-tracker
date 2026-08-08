@@ -82,7 +82,7 @@ function Index() {
 
         <section className="mt-6 space-y-4">
           {loaded && habits.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+            <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
               <Sparkles className="mx-auto size-6 text-muted-foreground" />
               <h2 className="mt-3 font-medium text-foreground">No habits yet</h2>
               <p className="mt-1 text-sm text-muted-foreground">
