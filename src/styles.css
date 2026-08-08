@@ -133,7 +133,7 @@
   --destructive: var(--main-palette-strawberry-2);
   --destructive-foreground: var(--main-light);
 
-  --border: oklch(0.88 0.04 57.30 / 60%);
+  --border: oklch(0.80 0.04 57.30);
   --input: oklch(0.90 0.03 57.30);
   --ring: var(--main-palette-strawberry-2);
 
