@@ -114,7 +114,7 @@
   --habit-4: var(--main-palette-strawberry-5);
   --habit-5: var(--main-palette-strawberry-1);
 
-  --background: oklch(0.93 0.03 57.30);
+  --background: oklch(0.98 0.01 57.30);
   --foreground: var(--main-dark);
 
   --card: var(--main-light);
