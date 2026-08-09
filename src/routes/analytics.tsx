@@ -23,7 +23,7 @@ export const Route = createFileRoute("/analytics")({
       },
     ],
   }),
-  component: Analytics;
+  component: Analytics,
 });
 
 const RANGES = [
