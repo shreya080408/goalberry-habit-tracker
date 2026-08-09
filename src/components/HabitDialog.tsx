@@ -10,25 +10,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { DAY_LABELS, DAY_NAMES, HABIT_COLORS, type Habit } from "@/lib/habits";
+import { DAY_LABELS, DAY_NAMES, DIFFICULTY_LEVELS, difficultyColor, type Habit } from "@/lib/habits";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   habit?: Habit | null;
-  onSubmit: (values: { name: string; days: number[]; color: string }) => void;
+  onSubmit: (values: { name: string; days: number[]; difficulty: number }) => void;
 };
 
 export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
   const [name, setName] = useState("");
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
-  const [color, setColor] = useState<string>(HABIT_COLORS[0]!);
+  const [difficulty, setDifficulty] = useState(1);
 
   useEffect(() => {
     if (!open) return;
     setName(habit?.name ?? "");
     setDays(habit?.days ?? [0, 1, 2, 3, 4, 5, 6]);
-    setColor(habit?.color ?? HABIT_COLORS[0]!);
+    setDifficulty(habit?.difficulty ?? 1);
   }, [open, habit]);
 
   const toggleDay = (d: number) =>
@@ -40,7 +40,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{habit ? "Edit habit" : "New habit"}</DialogTitle>
+          <DialogTitle className="font-display">{habit ? "Edit habit" : "Create habit"}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 py-1">
@@ -79,21 +79,23 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label>Color</Label>
+            <Label>Difficulty</Label>
             <div className="flex gap-3">
-              {HABIT_COLORS.map((c) => (
+              {DIFFICULTY_LEVELS.map((level) => (
                 <button
-                  key={c}
+                  key={level}
                   type="button"
-                  aria-label={`Color ${c}`}
-                  aria-pressed={color === c}
-                  onClick={() => setColor(c)}
+                  aria-label={`Difficulty ${level}`}
+                  aria-pressed={difficulty === level}
+                  onClick={() => setDifficulty(level)}
                   className={cn(
-                    "size-8 rounded-full ring-offset-2 ring-offset-background transition-all",
-                    color === c && "ring-2 ring-foreground",
+                    "flex size-10 items-center justify-center rounded-full text-sm font-semibold text-main-light ring-offset-2 ring-offset-background transition-all",
+                    difficulty === level && "ring-2 ring-foreground",
                   )}
-                  style={{ backgroundColor: c }}
-                />
+                  style={{ backgroundColor: difficultyColor(level) }}
+                >
+                  {level}
+                </button>
               ))}
             </div>
           </div>
@@ -106,7 +108,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
           <Button
             disabled={!canSave}
             onClick={() => {
-              onSubmit({ name, days, color: color ?? HABIT_COLORS[0]! });
+              onSubmit({ name, days, difficulty });
               onOpenChange(false);
             }}
           >
