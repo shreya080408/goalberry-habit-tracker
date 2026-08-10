@@ -48,7 +48,7 @@ function Rewards() {
     <PageShell
       title="Rewards"
       subtitle={
-        <p className="flex items-center gap-1.5 text-sm italic text-muted-foreground">
+        <p className="serif-italic flex items-center gap-1.5 text-sm text-main-dark/70">
           <StrawberryIcon className="size-4" />
           {earned} points earned
         </p>
@@ -62,7 +62,7 @@ function Rewards() {
     >
       <section className="mt-6 space-y-3">
         {loaded && rewards.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
             <StrawberryIcon className="mx-auto size-7" />
             <h2 className="mt-3 font-medium text-main-dark">No rewards yet</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ function Rewards() {
           return (
             <article
               key={reward.id}
-              className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+              className="rounded-xl border border-border bg-card p-4 shadow-sm"
               style={{ borderLeft: `4px solid var(--main-palette-strawberry-3)` }}
             >
               <div className="flex items-center gap-3">
@@ -98,9 +98,9 @@ function Rewards() {
                 </Button>
               </div>
 
-              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-md bg-muted">
                 <div
-                  className="h-full rounded-full transition-all duration-500"
+                  className="h-full rounded-md transition-all duration-500"
                   style={{
                     width: `${progress * 100}%`,
                     backgroundColor: "var(--main-palette-strawberry-5)",
