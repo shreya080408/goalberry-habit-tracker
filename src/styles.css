@@ -212,3 +212,22 @@
     color: var(--color-foreground);
   }
 }
+
+@utility bg-strawberry-pattern {
+  background-image: var(--main-bg-strawberry-1);
+  background-size: 420px;
+  background-repeat: repeat;
+  background-color: var(--main-light);
+}
+
+@utility bg-strawberry-pattern-2 {
+  background-image: var(--main-bg-strawberry-2);
+  background-size: 320px;
+  background-repeat: repeat;
+  background-color: var(--main-light);
+}
+
+@utility serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
