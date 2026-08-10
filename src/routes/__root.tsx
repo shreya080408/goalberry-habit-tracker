@@ -12,7 +12,9 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
+import { PointsBadge } from "@/components/PointsBadge";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
 
 function NotFoundComponent() {
   return (
