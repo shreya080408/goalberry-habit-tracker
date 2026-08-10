@@ -22,7 +22,7 @@ export const Route = createFileRoute("/calendar")({
       },
     ],
   }),
-  component: CalendarPage;
+  component: CalendarPage,
 });
 
 function sameDay(a: Date, b: Date) {
