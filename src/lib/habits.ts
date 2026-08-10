@@ -117,31 +117,45 @@ export function scheduledDates(habit: Habit, today = new Date()) {
   return out;
 }
 
-/** Success rate 0..1 — skips count as done. */
-export function successRate(habit: Habit, today = new Date()) {
+function hitOn(habit: Habit, date: Date, includeSkips: boolean) {
+  return isDone(habit, date) || (includeSkips && isSkipped(habit, date));
+}
+
+/** Success rate 0..1 — skips count as done when `includeSkips`. */
+export function successRate(habit: Habit, includeSkips = true, today = new Date()) {
   const dates = scheduledDates(habit, today);
   if (dates.length === 0) return 0;
-  const hit = dates.filter((d) => isDone(habit, d) || isSkipped(habit, d)).length;
+  const hit = dates.filter((d) => hitOn(habit, d, includeSkips)).length;
   return hit / dates.length;
 }
 
-export function overallSuccessRate(habits: Habit[], today = new Date()) {
+export function overallSuccessRate(habits: Habit[], includeSkips = true, today = new Date()) {
   let total = 0;
   let hit = 0;
   for (const h of habits) {
     const dates = scheduledDates(h, today);
     total += dates.length;
-    hit += dates.filter((d) => isDone(h, d) || isSkipped(h, d)).length;
+    hit += dates.filter((d) => hitOn(h, d, includeSkips)).length;
   }
   return total === 0 ? 0 : hit / total;
 }
 
+/** Longest current streak across all habits. */
+export function bestStreak(habits: Habit[], today = new Date()) {
+  return habits.reduce((max, h) => Math.max(max, currentStreak(h, today)), 0);
+}
+
 /** Daily success rate (0..100) for the last `days` days, oldest first. */
-export function dailySeries(habits: Habit[], days: number, today = new Date()) {
+export function dailySeries(
+  habits: Habit[],
+  days: number,
+  includeSkips = true,
+  today = new Date(),
+) {
   return Array.from({ length: days }, (_, i) => {
     const date = addDays(today, i - (days - 1));
     const scheduled = habits.filter((h) => isScheduled(h, date));
-    const hit = scheduled.filter((h) => isDone(h, date) || isSkipped(h, date)).length;
+    const hit = scheduled.filter((h) => hitOn(h, date, includeSkips)).length;
     return {
       date: toDateKey(date),
       label: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
@@ -149,6 +163,18 @@ export function dailySeries(habits: Habit[], days: number, today = new Date()) {
     };
   });
 }
+
+/** Habits scheduled on a date, grouped by their status. */
+export function dayBreakdown(habits: Habit[], date: Date) {
+  const scheduled = habits.filter((h) => isScheduled(h, date));
+  const completed = scheduled.filter((h) => isDone(h, date));
+  const skipped = scheduled.filter((h) => isSkipped(h, date));
+  const incomplete = scheduled.filter((h) => !isDone(h, date) && !isSkipped(h, date));
+  const rate =
+    scheduled.length === 0 ? 0 : (completed.length + skipped.length) / scheduled.length;
+  return { scheduled, completed, skipped, incomplete, rate };
+}
+
 
 type StoredHabit = Partial<Habit> & { color?: string };
 

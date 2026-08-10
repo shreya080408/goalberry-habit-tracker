@@ -12,7 +12,9 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
+import { PointsBadge } from "@/components/PointsBadge";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
 
 function NotFoundComponent() {
   return (
@@ -93,8 +95,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400..700&family=Raleway:wght@400..700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400..700&family=Raleway:wght@400..700&family=Lora:ital,wght@0,400..600;1,400..600&display=swap",
       },
+
       {
         rel: "stylesheet",
         href: appCss,
@@ -129,8 +132,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
         <AppSidebar />
-        <main className="min-h-screen flex-1 bg-main-light">
-          <SidebarTrigger className="m-3 text-main-dark" />
+        <main className="bg-strawberry-pattern relative min-h-screen flex-1">
+          <div className="flex items-center justify-between px-3 pt-3">
+            <SidebarTrigger className="text-main-dark" />
+            <PointsBadge />
+          </div>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
@@ -138,3 +144,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
