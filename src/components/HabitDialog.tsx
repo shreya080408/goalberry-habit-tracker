@@ -66,10 +66,10 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
                   aria-pressed={days.includes(i)}
                   onClick={() => toggleDay(i)}
                   className={cn(
-                    "size-10 rounded-full border text-sm font-medium transition-colors",
+                    "size-10 rounded-lg border text-sm font-medium transition-colors",
                     days.includes(i)
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background text-muted-foreground hover:bg-accent",
+                      : "border-border bg-background text-muted-foreground hover:bg-accent/40",
                   )}
                 >
                   {label}
@@ -89,17 +89,25 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
                   aria-pressed={difficulty === level}
                   onClick={() => setDifficulty(level)}
                   className={cn(
-                    "flex size-10 items-center justify-center rounded-full text-sm font-semibold text-main-light ring-offset-2 ring-offset-background transition-all",
-                    difficulty === level && "ring-2 ring-foreground",
+                    "relative flex size-11 items-center justify-center rounded-lg transition-all",
+                    difficulty === level
+                      ? "ring-2 ring-main-dark ring-offset-2 ring-offset-background"
+                      : "opacity-80 hover:opacity-100",
                   )}
-                  style={{ backgroundColor: difficultyColor(level) }}
                 >
-                  {level}
+                  <Star
+                    className="size-11"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    style={{ color: difficultyColor(level), fill: difficultyColor(level) }}
+                  />
+                  <span className="absolute text-xs font-semibold text-main-light">{level}</span>
                 </button>
               ))}
             </div>
           </div>
         </div>
+
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
