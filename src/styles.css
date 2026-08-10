@@ -89,11 +89,17 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
   /* Main dark / light substitutes */
-  --main-dark: oklch(0.22 0.04 57.30);
+  --main-dark: oklch(0.40 0.062 57.30);
   --main-light: oklch(0.99 0.01 57.30);
+
+  /* Page backgrounds (main-bg-strawberry 1 and 2) */
+  --main-bg-strawberry-1: url("/__l5e/assets-v1/2450888c-d2e4-41e7-ae8b-f7b4a80d2cd9/main-bg-strawberry-1.jpeg");
+  --main-bg-strawberry-2: url("/__l5e/assets-v1/46c429d3-e089-4716-8bf3-14425c9dec0b/main-bg-strawberry-2.jpeg");
+
+
 
   /* Strawberry colour palette (legacy named tokens) */
   --brown: oklch(0.503 0.069 57.30);
