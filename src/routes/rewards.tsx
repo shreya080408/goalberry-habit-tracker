@@ -109,7 +109,7 @@ function Rewards() {
               </div>
 
               {progress >= 1 && (
-                <p className="mt-2 text-xs italic text-main-dark/60">~ can redeem</p>
+                <p className="serif-italic mt-2 text-xs text-main-dark/60">~ can redeem</p>
               )}
             </article>
           );
