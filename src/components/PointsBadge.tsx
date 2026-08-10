@@ -49,8 +49,9 @@ export function PointsBadge() {
                   Difficulty {level}
                 </span>
                 <span className="text-sm font-semibold text-main-dark">
-                  +{pointsFor(level)} · skip −{skipCost(level)} ({skipCost(level)} points)
+                  +{pointsFor(level)} (skip −{skipCost(level)})
                 </span>
+
               </li>
             ))}
           </ul>
