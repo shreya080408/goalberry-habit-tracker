@@ -129,8 +129,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
         <AppSidebar />
-        <main className="min-h-screen flex-1 bg-main-light">
-          <SidebarTrigger className="m-3 text-main-dark" />
+        <main className="bg-strawberry-pattern relative min-h-screen flex-1">
+          <div className="flex items-center justify-between px-3 pt-3">
+            <SidebarTrigger className="text-main-dark" />
+            <PointsBadge />
+          </div>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
@@ -138,3 +141,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
