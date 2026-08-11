@@ -11,7 +11,7 @@ Big update in five parts: global look and feel, habit interactions, calendar, an
 - Top-right cluster on every page: streak counter (flame + overall streak) to the left of the points counter.
 - Bottom icon navigation bar on mobile/tablet only (sidebar stays for desktop): Today, All Habits, Calendar, Analytics, Rewards, Settings.
 - All progress bars and rings: empty portion main-palette-strawberry-1, filled portion main-palette-strawberry-5. Ring fill uses straight (butt) caps, not rounded.
-- Fluid transitions and subtle animations: page fade/slide-in, card hover lift, animated bar/ring fills, dialog easing.
+- Playful bouncy motion instead of fades: pages and cards spring in with a slight overshoot, buttons and cards bounce on tap/hover, bar and ring fills spring to their value, dialogs pop in with a springy scale.
 - Success-rate percentage text next to bars reverts to Raleway (not serif italic).
 
 ## 2. Habits
