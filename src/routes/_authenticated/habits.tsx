@@ -14,7 +14,7 @@ import {
   type Habit,
 } from "@/lib/habits";
 
-export const Route = createFileRoute("/habits")({
+export const Route = createFileRoute("/_authenticated/habits")({
   head: () => ({
     meta: [
       { title: "All Habits — Goalberry habit tracker" },
