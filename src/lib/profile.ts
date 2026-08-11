@@ -24,7 +24,7 @@ export function useProfile() {
       if (!data) {
         const { data: created, error: insertError } = await supabase
           .from("profiles")
-          .insert({ id: auth.user.id, email: auth.user.email })
+          .insert({ id: auth.user.id, email: auth.user.email ?? null })
           .select()
           .single();
         if (insertError) throw insertError;
