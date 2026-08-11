@@ -14,13 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      habits: {
+        Row: {
+          completions: string[]
+          created_at: string
+          days: number[]
+          description: string | null
+          difficulty: number
+          end_date: string | null
+          id: string
+          name: string
+          skips: string[]
+          start_date: string
+          user_id: string
+        }
+        Insert: {
+          completions?: string[]
+          created_at?: string
+          days?: number[]
+          description?: string | null
+          difficulty?: number
+          end_date?: string | null
+          id?: string
+          name: string
+          skips?: string[]
+          start_date?: string
+          user_id?: string
+        }
+        Update: {
+          completions?: string[]
+          created_at?: string
+          days?: number[]
+          description?: string | null
+          difficulty?: number
+          end_date?: string | null
+          id?: string
+          name?: string
+          skips?: string[]
+          start_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          include_skips: boolean
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          include_skips?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          include_skips?: boolean
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          id: string
+          name: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          points: number
+          user_id?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_reward: { Args: { _reward_id: string }; Returns: number }
+      points_balance: { Args: never; Returns: number }
+      skip_habit: { Args: { _day: string; _habit_id: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
