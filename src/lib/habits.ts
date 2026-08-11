@@ -1,17 +1,31 @@
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export type Habit = {
   id: string;
   name: string;
+  description: string | null;
   /** 0 = Sunday ... 6 = Saturday */
   days: number[];
   /** 1 (easiest) to 5 (hardest) */
   difficulty: number;
+  /** yyyy-mm-dd — habit does not exist before this day */
+  startDate: string;
+  /** yyyy-mm-dd or null — habit does not exist after this day */
+  endDate: string | null;
   createdAt: string;
   /** ISO date strings (yyyy-mm-dd) that were completed */
   completions: string[];
   /** ISO date strings (yyyy-mm-dd) that were skipped (streak kept, points deducted) */
   skips: string[];
+};
+
+export type HabitInput = {
+  name: string;
+  description?: string | null;
+  days: number[];
+  difficulty: number;
+  endDate?: string | null;
 };
 
 export const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -42,8 +56,6 @@ export function skipCost(difficulty: number) {
   return pointsFor(difficulty) * 5;
 }
 
-const STORAGE_KEY = "habits.v2";
-
 export function toDateKey(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -57,7 +69,11 @@ export function addDays(date: Date, amount: number) {
   return next;
 }
 
+/** Scheduled on this weekday AND inside the habit's active window. */
 export function isScheduled(habit: Habit, date: Date) {
+  const key = toDateKey(date);
+  if (key < habit.startDate) return false;
+  if (habit.endDate && key > habit.endDate) return false;
   return habit.days.includes(date.getDay());
 }
 
@@ -102,10 +118,9 @@ export function totalPoints(habits: Habit[]) {
   return habits.reduce((sum, h) => sum + habitPoints(h), 0);
 }
 
-/** Scheduled days between the habit's creation and `today` (inclusive). */
+/** Scheduled days between the habit's start and `today` (inclusive). */
 export function scheduledDates(habit: Habit, today = new Date()) {
-  const start = new Date(habit.createdAt);
-  start.setHours(0, 0, 0, 0);
+  const start = new Date(`${habit.startDate}T00:00:00`);
   const end = new Date(today);
   end.setHours(0, 0, 0, 0);
   const out: Date[] = [];
@@ -145,15 +160,15 @@ export function bestStreak(habits: Habit[], today = new Date()) {
   return habits.reduce((max, h) => Math.max(max, currentStreak(h, today)), 0);
 }
 
-/** Daily success rate (0..100) for the last `days` days, oldest first. */
+/** Daily success rate (0..100) for `days` days ending at `endDate`, oldest first. */
 export function dailySeries(
   habits: Habit[],
   days: number,
   includeSkips = true,
-  today = new Date(),
+  endDate = new Date(),
 ) {
   return Array.from({ length: days }, (_, i) => {
-    const date = addDays(today, i - (days - 1));
+    const date = addDays(endDate, i - (days - 1));
     const scheduled = habits.filter((h) => isScheduled(h, date));
     const hit = scheduled.filter((h) => hitOn(h, date, includeSkips)).length;
     return {
@@ -175,112 +190,160 @@ export function dayBreakdown(habits: Habit[], date: Date) {
   return { scheduled, completed, skipped, incomplete, rate };
 }
 
+/* ------------------------------------------------------------------ */
+/* Data layer                                                          */
+/* ------------------------------------------------------------------ */
 
-type StoredHabit = Partial<Habit> & { color?: string };
+type HabitRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  days: number[] | null;
+  difficulty: number;
+  start_date: string;
+  end_date: string | null;
+  completions: string[] | null;
+  skips: string[] | null;
+  created_at: string;
+};
 
-function migrate(raw: StoredHabit[]): Habit[] {
-  return raw.map((h) => ({
-    id: h.id ?? crypto.randomUUID(),
-    name: h.name ?? "Untitled",
-    days: h.days ?? [0, 1, 2, 3, 4, 5, 6],
-    difficulty: h.difficulty ?? 1,
-    createdAt: h.createdAt ?? new Date().toISOString(),
-    completions: h.completions ?? [],
-    skips: h.skips ?? [],
-  }));
+function fromRow(row: HabitRow): Habit {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    days: (row.days ?? []).map(Number),
+    difficulty: row.difficulty,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    completions: row.completions ?? [],
+    skips: row.skips ?? [],
+    createdAt: row.created_at,
+  };
 }
 
-function read(): Habit[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem("habits.v1");
-    return raw ? migrate(JSON.parse(raw) as StoredHabit[]) : [];
-  } catch {
-    return [];
-  }
+export const INSUFFICIENT_POINTS = "INSUFFICIENT_POINTS";
+
+export function usePoints() {
+  const { data } = useQuery({
+    queryKey: ["points"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("points_balance");
+      if (error) throw error;
+      return (data as number) ?? 0;
+    },
+  });
+  return data ?? 0;
 }
 
 export function useHabits() {
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const qc = useQueryClient();
 
-  useEffect(() => {
-    setHabits(read());
-    setLoaded(true);
-  }, []);
+  const { data, isFetched } = useQuery({
+    queryKey: ["habits"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("habits")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data as unknown as HabitRow[]).map(fromRow);
+    },
+  });
 
-  useEffect(() => {
-    if (!loaded) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
-  }, [habits, loaded]);
+  const habits = data ?? [];
 
-  const createHabit = useCallback((input: { name: string; days: number[]; difficulty: number }) => {
-    setHabits((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["habits"] });
+    void qc.invalidateQueries({ queryKey: ["points"] });
+  };
+
+  const createMutation = useMutation({
+    mutationFn: async (input: HabitInput) => {
+      const { error } = await supabase.from("habits").insert({
         name: input.name.trim(),
+        description: input.description?.trim() || null,
         days: input.days,
         difficulty: input.difficulty,
-        createdAt: new Date().toISOString(),
-        completions: [],
-        skips: [],
-      },
-    ]);
-  }, []);
-
-  const updateHabit = useCallback(
-    (id: string, patch: Partial<Pick<Habit, "name" | "days" | "difficulty">>) => {
-      setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, ...patch } : h)));
+        end_date: input.endDate || null,
+      });
+      if (error) throw error;
     },
-    [],
-  );
+    onSuccess: invalidate,
+  });
 
-  const deleteHabit = useCallback((id: string) => {
-    setHabits((prev) => prev.filter((h) => h.id !== id));
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: HabitInput }) => {
+      const { error } = await supabase
+        .from("habits")
+        .update({
+          name: patch.name.trim(),
+          description: patch.description?.trim() || null,
+          days: patch.days,
+          difficulty: patch.difficulty,
+          end_date: patch.endDate || null,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
 
-  const toggleCompletion = useCallback((id: string, date: Date) => {
-    const key = toDateKey(date);
-    setHabits((prev) =>
-      prev.map((h) =>
-        h.id === id
-          ? {
-              ...h,
-              skips: h.skips.filter((s) => s !== key),
-              completions: h.completions.includes(key)
-                ? h.completions.filter((c) => c !== key)
-                : [...h.completions, key],
-            }
-          : h,
-      ),
-    );
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("habits").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
 
-  const toggleSkip = useCallback((id: string, date: Date) => {
-    const key = toDateKey(date);
-    setHabits((prev) =>
-      prev.map((h) =>
-        h.id === id
-          ? {
-              ...h,
-              completions: h.completions.filter((c) => c !== key),
-              skips: h.skips.includes(key)
-                ? h.skips.filter((s) => s !== key)
-                : [...h.skips, key],
-            }
-          : h,
-      ),
-    );
-  }, []);
+  const completionMutation = useMutation({
+    mutationFn: async ({ id, date }: { id: string; date: Date }) => {
+      const habit = habits.find((h) => h.id === id);
+      if (!habit) return;
+      const key = toDateKey(date);
+      const completions = habit.completions.includes(key)
+        ? habit.completions.filter((c) => c !== key)
+        : [...habit.completions, key];
+      const { error } = await supabase
+        .from("habits")
+        .update({ completions, skips: habit.skips.filter((s) => s !== key) })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  /** Skipping goes through a server-side check so points cannot be cheated. */
+  const skipMutation = useMutation({
+    mutationFn: async ({ id, date }: { id: string; date: Date }) => {
+      const habit = habits.find((h) => h.id === id);
+      if (!habit) return;
+      const key = toDateKey(date);
+      if (habit.skips.includes(key)) {
+        const { error } = await supabase
+          .from("habits")
+          .update({ skips: habit.skips.filter((s) => s !== key) })
+          .eq("id", id);
+        if (error) throw error;
+        return;
+      }
+      const { error } = await supabase.rpc("skip_habit", { _habit_id: id, _day: key });
+      if (error) {
+        throw new Error(error.message.includes(INSUFFICIENT_POINTS) ? INSUFFICIENT_POINTS : error.message);
+      }
+    },
+    onSuccess: invalidate,
+  });
 
   return {
     habits,
-    loaded,
-    createHabit,
-    updateHabit,
-    deleteHabit,
-    toggleCompletion,
-    toggleSkip,
+    loaded: isFetched,
+    createHabit: (input: HabitInput) => createMutation.mutate(input),
+    updateHabit: (id: string, patch: HabitInput) => updateMutation.mutate({ id, patch }),
+    deleteHabit: (id: string) => deleteMutation.mutate(id),
+    toggleCompletion: (id: string, date: Date) => completionMutation.mutate({ id, date }),
+    /** Resolves; rejects with INSUFFICIENT_POINTS when the balance is too low. */
+    toggleSkip: (id: string, date: Date) => skipMutation.mutateAsync({ id, date }),
   };
 }

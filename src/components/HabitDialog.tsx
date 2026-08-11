@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
+import { CalendarIcon, Star } from "lucide-react";
 
 import {
   Dialog,
@@ -8,29 +8,55 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { DAY_LABELS, DAY_NAMES, DIFFICULTY_LEVELS, difficultyColor, type Habit } from "@/lib/habits";
+import {
+  DAY_LABELS,
+  DAY_NAMES,
+  DIFFICULTY_LEVELS,
+  difficultyColor,
+  toDateKey,
+  type Habit,
+  type HabitInput,
+} from "@/lib/habits";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   habit?: Habit | null;
-  onSubmit: (values: { name: string; days: number[]; difficulty: number }) => void;
+  onSubmit: (values: HabitInput) => void;
 };
+
+function FieldLabel({ children, htmlFor }: { children: string; htmlFor?: string }) {
+  return (
+    <Label
+      htmlFor={htmlFor}
+      className="w-fit border-b border-main-dark/40 pb-0.5 text-main-dark"
+    >
+      {children}:
+    </Label>
+  );
+}
 
 export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [difficulty, setDifficulty] = useState(1);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;
     setName(habit?.name ?? "");
+    setDescription(habit?.description ?? "");
     setDays(habit?.days ?? [0, 1, 2, 3, 4, 5, 6]);
     setDifficulty(habit?.difficulty ?? 1);
+    setEndDate(habit?.endDate ? new Date(`${habit.endDate}T00:00:00`) : undefined);
   }, [open, habit]);
 
   const toggleDay = (d: number) =>
@@ -40,14 +66,14 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">{habit ? "Edit habit" : "Create habit"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-1">
-          <div className="space-y-2">
-            <Label htmlFor="habit-name">Name</Label>
+        <div className="space-y-7 py-1">
+          <div className="space-y-3">
+            <FieldLabel htmlFor="habit-name">Name</FieldLabel>
             <Input
               id="habit-name"
               value={name}
@@ -57,8 +83,19 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Repeat on</Label>
+          <div className="space-y-3">
+            <FieldLabel htmlFor="habit-desc">Desc (optional)</FieldLabel>
+            <Textarea
+              id="habit-desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Why this habit matters"
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <FieldLabel>Repeat on</FieldLabel>
             <div className="flex gap-2">
               {DAY_LABELS.map((label, i) => (
                 <button
@@ -68,7 +105,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
                   aria-pressed={days.includes(i)}
                   onClick={() => toggleDay(i)}
                   className={cn(
-                    "size-10 rounded-lg border text-sm font-medium transition-colors",
+                    "bouncy-press size-10 rounded-lg border text-sm font-medium",
                     days.includes(i)
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-background text-muted-foreground hover:bg-accent/40",
@@ -80,9 +117,9 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Difficulty</Label>
-            <div className="flex gap-3">
+          <div className="space-y-3">
+            <FieldLabel>Difficulty</FieldLabel>
+            <div className="flex items-center gap-3">
               {DIFFICULTY_LEVELS.map((level) => (
                 <button
                   key={level}
@@ -91,14 +128,17 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
                   aria-pressed={difficulty === level}
                   onClick={() => setDifficulty(level)}
                   className={cn(
-                    "relative flex size-11 items-center justify-center rounded-lg transition-all",
-                    difficulty === level
-                      ? "ring-2 ring-main-dark ring-offset-2 ring-offset-background"
-                      : "opacity-80 hover:opacity-100",
+                    "relative flex size-12 items-center justify-center rounded-lg transition-transform duration-300",
+                    difficulty === level ? "scale-125" : "scale-90 opacity-80 hover:opacity-100",
                   )}
+                  style={
+                    difficulty === level
+                      ? { transitionTimingFunction: "cubic-bezier(0.34,1.56,0.64,1)" }
+                      : undefined
+                  }
                 >
                   <Star
-                    className="size-11"
+                    className="size-10"
                     strokeLinejoin="round"
                     strokeWidth={1.5}
                     style={{ color: difficultyColor(level), fill: difficultyColor(level) }}
@@ -108,17 +148,51 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
               ))}
             </div>
           </div>
-        </div>
 
+          <div className="space-y-3">
+            <FieldLabel>End date (optional)</FieldLabel>
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="justify-start gap-2 rounded-lg">
+                    <CalendarIcon className="size-4" />
+                    {endDate
+                      ? endDate.toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "No end date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} />
+                </PopoverContent>
+              </Popover>
+              {endDate && (
+                <Button variant="ghost" size="sm" onClick={() => setEndDate(undefined)}>
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
+            className="bouncy-press"
             disabled={!canSave}
             onClick={() => {
-              onSubmit({ name, days, difficulty });
+              onSubmit({
+                name,
+                description,
+                days,
+                difficulty,
+                endDate: endDate ? toDateKey(endDate) : null,
+              });
               onOpenChange(false);
             }}
           >

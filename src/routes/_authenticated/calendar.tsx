@@ -6,7 +6,7 @@ import { PageShell } from "@/components/PageShell";
 import { cn } from "@/lib/utils";
 import { DAY_LABELS, dayBreakdown, difficultyColor, useHabits } from "@/lib/habits";
 
-export const Route = createFileRoute("/calendar")({
+export const Route = createFileRoute("/_authenticated/calendar")({
   head: () => ({
     meta: [
       { title: "Calendar — Goalberry habit tracker" },

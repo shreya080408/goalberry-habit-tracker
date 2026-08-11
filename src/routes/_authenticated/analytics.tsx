@@ -18,7 +18,7 @@ import {
   useHabits,
 } from "@/lib/habits";
 
-export const Route = createFileRoute("/analytics")({
+export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
       { title: "Analytics — Goalberry habit tracker" },

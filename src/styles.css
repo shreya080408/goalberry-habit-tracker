@@ -98,6 +98,8 @@
   /* Page backgrounds (main-bg-strawberry 1 and 2) */
   --main-bg-strawberry-1: url("/__l5e/assets-v1/2450888c-d2e4-41e7-ae8b-f7b4a80d2cd9/main-bg-strawberry-1.jpeg");
   --main-bg-strawberry-2: url("/__l5e/assets-v1/46c429d3-e089-4716-8bf3-14425c9dec0b/main-bg-strawberry-2.jpeg");
+  --main-bg-strawberry-3: url("/__l5e/assets-v1/c4d5a467-e552-4abf-abff-7f0c66f961e8/main-bg-strawberry-3.jpeg");
+  --main-icon-strawberry-3: url("/__l5e/assets-v1/a1962f31-eb20-4842-a235-292ad8efae0e/main-icon-strawberry-3.png");
 
 
 
@@ -214,9 +216,11 @@
 }
 
 @utility bg-strawberry-pattern {
-  background-image: var(--main-bg-strawberry-1);
-  background-size: 420px;
-  background-repeat: repeat;
+  background-image: var(--main-bg-strawberry-3);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   background-color: var(--main-light);
 }
 
@@ -231,3 +235,103 @@
   font-family: var(--font-serif);
   font-style: italic;
 }
+
+/* Page heading: solid bottom-left drop shadow in main-light */
+@utility heading-shadow {
+  text-shadow:
+    -3px 3px 0 var(--main-light),
+    -1px 1px 0 var(--main-light);
+}
+
+/* Italic sub-heading chip sitting on a main-light background */
+@utility subtitle-chip {
+  display: inline-block;
+  background-color: var(--main-light);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.125rem 0.5rem;
+  font-weight: 600;
+}
+
+/* One shared shadow style: solid, bottom-left, no blur */
+@utility shadow-solid {
+  box-shadow: -6px 6px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
+}
+
+@utility shadow-solid-sm {
+  box-shadow: -4px 4px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
+}
+
+/* ---- Playful bouncy motion ---- */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.03);
+  }
+  80% {
+    transform: translateY(2px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bounce-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  55% {
+    transform: scale(1.18);
+  }
+  75% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@utility animate-pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@utility animate-bounce-pop {
+  animation: bounce-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@utility bouncy {
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.2s ease;
+}
+
+@utility bouncy-press {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@layer base {
+  .bouncy-press:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+  .bouncy-press:active {
+    transform: translateY(1px) scale(0.95);
+  }
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    animation: bounce-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+

@@ -16,7 +16,7 @@ import { StrawberryIcon } from "@/components/icons/StrawberryIcon";
 import { totalPoints, useHabits } from "@/lib/habits";
 import { useRewards } from "@/lib/rewards";
 
-export const Route = createFileRoute("/rewards")({
+export const Route = createFileRoute("/_authenticated/rewards")({
   head: () => ({
     meta: [
       { title: "Rewards — Goalberry habit tracker" },
