@@ -1,53 +1,88 @@
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { INSUFFICIENT_POINTS } from "@/lib/habits";
 
 export type Reward = {
   id: string;
   name: string;
   points: number;
+  claimedAt: string | null;
   createdAt: string;
 };
 
-const STORAGE_KEY = "rewards.v1";
-
-function read(): Reward[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Reward[]) : [];
-  } catch {
-    return [];
-  }
-}
+type RewardRow = {
+  id: string;
+  name: string;
+  points: number;
+  claimed_at: string | null;
+  created_at: string;
+};
 
 export function useRewards() {
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const qc = useQueryClient();
 
-  useEffect(() => {
-    setRewards(read());
-    setLoaded(true);
-  }, []);
+  const { data, isFetched } = useQuery({
+    queryKey: ["rewards"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rewards")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data as unknown as RewardRow[]).map((r) => ({
+        id: r.id,
+        name: r.name,
+        points: r.points,
+        claimedAt: r.claimed_at,
+        createdAt: r.created_at,
+      }));
+    },
+  });
 
-  useEffect(() => {
-    if (!loaded) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rewards));
-  }, [rewards, loaded]);
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["rewards"] });
+    void qc.invalidateQueries({ queryKey: ["points"] });
+  };
 
-  const createReward = useCallback((input: { name: string; points: number }) => {
-    setRewards((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: input.name.trim(),
-        points: input.points,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: async (input: { name: string; points: number }) => {
+      const { error } = await supabase
+        .from("rewards")
+        .insert({ name: input.name.trim(), points: input.points });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
 
-  const deleteReward = useCallback((id: string) => {
-    setRewards((prev) => prev.filter((r) => r.id !== id));
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("rewards").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
 
-  return { rewards, loaded, createReward, deleteReward };
+  const claimMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("claim_reward", { _reward_id: id });
+      if (error) {
+        throw new Error(
+          error.message.includes(INSUFFICIENT_POINTS) ? INSUFFICIENT_POINTS : error.message,
+        );
+      }
+    },
+    onSuccess: invalidate,
+  });
+
+  const rewards = data ?? [];
+
+  return {
+    rewards,
+    open: rewards.filter((r) => !r.claimedAt),
+    claimed: rewards.filter((r) => r.claimedAt),
+    loaded: isFetched,
+    createReward: (input: { name: string; points: number }) => createMutation.mutate(input),
+    deleteReward: (id: string) => deleteMutation.mutate(id),
+    claimReward: (id: string) => claimMutation.mutateAsync(id),
+  };
 }
