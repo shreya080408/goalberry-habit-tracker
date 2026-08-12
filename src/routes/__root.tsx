@@ -138,6 +138,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -146,13 +156,16 @@ function RootComponent() {
         <main className="bg-strawberry-pattern relative min-h-screen flex-1">
           <div className="flex items-center justify-between px-3 pt-3">
             <SidebarTrigger className="text-main-dark" />
-            <PointsBadge />
+            <TopStats />
           </div>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <BottomNav />
         </main>
       </SidebarProvider>
+      <Toaster />
     </QueryClientProvider>
   );
 }
+
 
