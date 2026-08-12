@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -45,6 +46,8 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const chromeless = pathname === "/auth";
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -139,6 +142,8 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const chromeless = pathname === "/auth";
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -152,15 +157,17 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
-        <AppSidebar />
+        {!chromeless && <AppSidebar />}
         <main className="bg-strawberry-pattern relative min-h-screen flex-1">
-          <div className="flex items-center justify-between px-3 pt-3">
-            <SidebarTrigger className="text-main-dark" />
-            <TopStats />
-          </div>
+          {!chromeless && (
+            <div className="flex items-center justify-between px-3 pt-3">
+              <SidebarTrigger className="text-main-dark" />
+              <TopStats />
+            </div>
+          )}
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
-          <BottomNav />
+          {!chromeless && <BottomNav />}
         </main>
       </SidebarProvider>
       <Toaster />
