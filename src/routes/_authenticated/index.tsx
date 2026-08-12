@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Flame, Plus } from "lucide-react";
+import { Check, ChevronDown, Flame, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -24,6 +24,7 @@ import {
   isSkipped,
   skipCost,
   useHabits,
+  usePoints,
   type Habit,
 } from "@/lib/habits";
 
@@ -41,6 +42,8 @@ export const Route = createFileRoute("/_authenticated/")({
         property: "og:description",
         content: "Track today's habits, keep streaks alive and earn points towards rewards.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -48,8 +51,11 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function Index() {
   const { habits, loaded, createHabit, toggleCompletion, toggleSkip } = useHabits();
+  const points = usePoints();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [skipTarget, setSkipTarget] = useState<Habit | null>(null);
+  const [brokeError, setBrokeError] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const today = new Date();
 
@@ -57,11 +63,19 @@ function Index() {
   const done = todays.filter((h) => isDone(h, today) || isSkipped(h, today)).length;
   const progress = todays.length === 0 ? 0 : done / todays.length;
 
+  const requestSkip = (habit: Habit) => {
+    if (points < skipCost(habit.difficulty)) {
+      setBrokeError(true);
+      return;
+    }
+    setSkipTarget(habit);
+  };
+
   return (
     <PageShell
       title="Today's Habits"
       subtitle={
-        <p className="serif-italic text-sm text-main-dark/70">
+        <p className="serif-italic subtitle-chip text-sm font-semibold text-main-dark/80">
           {today.toLocaleDateString(undefined, {
             weekday: "long",
             month: "long",
@@ -70,7 +84,7 @@ function Index() {
         </p>
       }
       action={
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button className="bouncy-press" onClick={() => setDialogOpen(true)}>
           <Plus className="size-4" />
           Create habit
         </Button>
@@ -78,7 +92,10 @@ function Index() {
     >
       {todays.length > 0 && (
         <div className="mt-6 flex items-center gap-3">
-          <div className="h-2 flex-1 overflow-hidden rounded-md bg-muted">
+          <div
+            className="h-2 flex-1 overflow-hidden rounded-md"
+            style={{ backgroundColor: "var(--main-palette-strawberry-1)" }}
+          >
             <div
               className="h-full rounded-md transition-all duration-500"
               style={{
@@ -87,16 +104,16 @@ function Index() {
               }}
             />
           </div>
-          <span className="serif-italic text-sm text-main-dark">
+          <span className="text-sm font-semibold text-main-dark">
             {Math.round(progress * 100)}%
           </span>
         </div>
       )}
 
-      <section className="mt-6 space-y-4">
+      <section className="mt-6 space-y-5">
         {loaded && todays.length === 0 && (
           <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
-            <StrawberryIcon className="mx-auto size-7" />
+            <StrawberryIcon className="mx-auto size-8" />
             <h2 className="mt-3 font-medium text-main-dark">Nothing due today</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Create a habit and pick the days you want to repeat it.
@@ -113,17 +130,41 @@ function Index() {
           const skipped = isSkipped(habit, today);
           const streak = currentStreak(habit);
           const accent = difficultyColor(habit.difficulty);
+          const isOpen = !!expanded[habit.id];
           return (
             <article
               key={habit.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-              style={{
-                borderLeft: `4px solid ${accent}`,
-                boxShadow: `-5px 5px 0 0 color-mix(in oklab, ${accent} 28%, transparent)`,
-              }}
+              className="shadow-solid bouncy flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+              style={
+                {
+                  borderLeft: `4px solid ${accent}`,
+                  "--shadow-solid-color": accent,
+                } as React.CSSProperties
+              }
             >
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-medium text-main-dark">{habit.name}</h3>
+
+                {habit.description && (
+                  <>
+                    <button
+                      type="button"
+                      className="mt-0.5 flex items-center gap-1 text-xs text-main-dark/60 underline-offset-4 hover:underline"
+                      onClick={() =>
+                        setExpanded((prev) => ({ ...prev, [habit.id]: !prev[habit.id] }))
+                      }
+                    >
+                      show desc
+                      <ChevronDown
+                        className={`size-3 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {isOpen && (
+                      <p className="mt-1 text-sm text-main-dark/80">{habit.description}</p>
+                    )}
+                  </>
+                )}
+
                 <p className="mt-1 flex flex-wrap items-center gap-1.5">
                   {DAY_LABELS.map((label, i) => (
                     <span
@@ -150,26 +191,36 @@ function Index() {
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                <Button
-                  size="sm"
-                  aria-pressed={completed}
-                  onClick={() => toggleCompletion(habit.id, today)}
-                  className="rounded-lg text-main-dark hover:opacity-90"
-                  style={{
-                    backgroundColor: "var(--main-palette-strawberry-4)",
-                    opacity: completed ? 1 : 0.75,
-                  }}
-                >
-                  {completed ? "Done ✓" : "Done"}
-                </Button>
+                {completed ? (
+                  <button
+                    type="button"
+                    aria-label={`Unmark ${habit.name}`}
+                    onClick={() => toggleCompletion(habit.id, today)}
+                    className="bouncy-press flex size-9 items-center justify-center rounded-lg"
+                    style={{ backgroundColor: "var(--main-palette-strawberry-4)" }}
+                  >
+                    <Check className="size-5 text-main-dark" />
+                  </button>
+                ) : (
+                  <Button
+                    size="sm"
+                    disabled={skipped}
+                    onClick={() => toggleCompletion(habit.id, today)}
+                    className="bouncy-press rounded-lg text-main-dark hover:opacity-90"
+                    style={{ backgroundColor: "var(--main-palette-strawberry-4)" }}
+                  >
+                    Done
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   aria-pressed={skipped}
-                  onClick={() => (skipped ? toggleSkip(habit.id, today) : setSkipTarget(habit))}
-                  className="rounded-lg text-main-light hover:opacity-90"
+                  disabled={completed}
+                  onClick={() => (skipped ? void toggleSkip(habit.id, today) : requestSkip(habit))}
+                  className="bouncy-press rounded-lg text-main-light hover:opacity-90"
                   style={{
                     backgroundColor: "var(--main-palette-strawberry-1)",
-                    opacity: skipped ? 1 : 0.75,
+                    opacity: skipped ? 1 : 0.85,
                   }}
                 >
                   {skipped ? "Skipped" : "Skip"}
@@ -196,12 +247,28 @@ function Index() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (skipTarget) toggleSkip(skipTarget.id, today);
+                if (skipTarget) {
+                  void toggleSkip(skipTarget.id, today).catch(() => setBrokeError(true));
+                }
                 setSkipTarget(null);
               }}
             >
               Confirm skip
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={brokeError} onOpenChange={setBrokeError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Not enough points to skip!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Complete a few habits to earn more points, then try again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setBrokeError(false)}>Got it</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
