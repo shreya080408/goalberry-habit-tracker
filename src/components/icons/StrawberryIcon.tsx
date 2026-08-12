@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
-import iconAsset from "@/assets/main-icon-strawberry-3.png.asset.json";
+import iconAsset from "@/assets/main-icon-strawberry-4.png.asset.json";
 
 /**
- * main-icon-strawberry-3 — the project's canonical icon.
- * Hand-drawn strawberry, used everywhere an app icon is required.
+ * main-icon-strawberry-4 — the project's canonical icon.
+ * Hand-drawn strawberry on a transparent background.
  */
 export function StrawberryIcon({ className }: { className?: string }) {
   return (
