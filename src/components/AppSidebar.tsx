@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarCheck, ListChecks, CalendarDays, Gift, LineChart } from "lucide-react";
+import { CalendarCheck, ListChecks, CalendarDays, Gift, LineChart, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +18,7 @@ const items = [
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
   { title: "Analytics", url: "/analytics", icon: LineChart },
   { title: "Rewards", url: "/rewards", icon: Gift },
+  { title: "Settings", url: "/settings", icon: Settings },
 ] as const;
 
 export function AppSidebar() {

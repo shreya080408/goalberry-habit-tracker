@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { localStore, newId } from "@/lib/local-store";
+import { useSession } from "@/lib/session";
 
 export type Habit = {
   id: string;
@@ -224,10 +226,20 @@ function fromRow(row: HabitRow): Habit {
 
 export const INSUFFICIENT_POINTS = "INSUFFICIENT_POINTS";
 
+/** Points earned from habits minus points spent on claimed rewards. */
+function localBalance() {
+  const habits = localStore.habits();
+  const claimed = localStore.rewards().filter((r) => r.claimedAt);
+  return totalPoints(habits) - claimed.reduce((sum, r) => sum + r.points, 0);
+}
+
 export function usePoints() {
+  const { userId, loaded } = useSession();
   const { data } = useQuery({
-    queryKey: ["points"],
+    queryKey: ["points", userId ?? "guest"],
+    enabled: loaded,
     queryFn: async () => {
+      if (!userId) return localBalance();
       const { data, error } = await supabase.rpc("points_balance");
       if (error) throw error;
       return (data as number) ?? 0;
@@ -238,10 +250,13 @@ export function usePoints() {
 
 export function useHabits() {
   const qc = useQueryClient();
+  const { userId, loaded: sessionLoaded } = useSession();
 
   const { data, isFetched } = useQuery({
-    queryKey: ["habits"],
+    queryKey: ["habits", userId ?? "guest"],
+    enabled: sessionLoaded,
     queryFn: async () => {
+      if (!userId) return localStore.habits();
       const { data, error } = await supabase
         .from("habits")
         .select("*")
@@ -258,8 +273,32 @@ export function useHabits() {
     void qc.invalidateQueries({ queryKey: ["points"] });
   };
 
+  const saveLocal = (next: Habit[]) => {
+    localStore.setHabits(next);
+    invalidate();
+  };
+
   const createMutation = useMutation({
     mutationFn: async (input: HabitInput) => {
+      if (!userId) {
+        const now = new Date();
+        saveLocal([
+          ...localStore.habits(),
+          {
+            id: newId(),
+            name: input.name.trim(),
+            description: input.description?.trim() || null,
+            days: input.days,
+            difficulty: input.difficulty,
+            startDate: toDateKey(now),
+            endDate: input.endDate || null,
+            createdAt: now.toISOString(),
+            completions: [],
+            skips: [],
+          },
+        ]);
+        return;
+      }
       const { error } = await supabase.from("habits").insert({
         name: input.name.trim(),
         description: input.description?.trim() || null,
@@ -274,6 +313,23 @@ export function useHabits() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: HabitInput }) => {
+      if (!userId) {
+        saveLocal(
+          localStore.habits().map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  name: patch.name.trim(),
+                  description: patch.description?.trim() || null,
+                  days: patch.days,
+                  difficulty: patch.difficulty,
+                  endDate: patch.endDate || null,
+                }
+              : h,
+          ),
+        );
+        return;
+      }
       const { error } = await supabase
         .from("habits")
         .update({
@@ -291,6 +347,10 @@ export function useHabits() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!userId) {
+        saveLocal(localStore.habits().filter((h) => h.id !== id));
+        return;
+      }
       const { error } = await supabase.from("habits").delete().eq("id", id);
       if (error) throw error;
     },
@@ -305,9 +365,17 @@ export function useHabits() {
       const completions = habit.completions.includes(key)
         ? habit.completions.filter((c) => c !== key)
         : [...habit.completions, key];
+      const skips = habit.skips.filter((s) => s !== key);
+
+      if (!userId) {
+        saveLocal(
+          localStore.habits().map((h) => (h.id === id ? { ...h, completions, skips } : h)),
+        );
+        return;
+      }
       const { error } = await supabase
         .from("habits")
-        .update({ completions, skips: habit.skips.filter((s) => s !== key) })
+        .update({ completions, skips })
         .eq("id", id);
       if (error) throw error;
     },
@@ -320,6 +388,30 @@ export function useHabits() {
       const habit = habits.find((h) => h.id === id);
       if (!habit) return;
       const key = toDateKey(date);
+
+      if (!userId) {
+        const list = localStore.habits();
+        if (habit.skips.includes(key)) {
+          saveLocal(
+            list.map((h) => (h.id === id ? { ...h, skips: h.skips.filter((s) => s !== key) } : h)),
+          );
+          return;
+        }
+        if (localBalance() < skipCost(habit.difficulty)) throw new Error(INSUFFICIENT_POINTS);
+        saveLocal(
+          list.map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  skips: [...h.skips, key],
+                  completions: h.completions.filter((c) => c !== key),
+                }
+              : h,
+          ),
+        );
+        return;
+      }
+
       if (habit.skips.includes(key)) {
         const { error } = await supabase
           .from("habits")
@@ -347,3 +439,4 @@ export function useHabits() {
     toggleSkip: (id: string, date: Date) => skipMutation.mutateAsync({ id, date }),
   };
 }
+

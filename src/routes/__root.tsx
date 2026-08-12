@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,8 +13,12 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
-import { PointsBadge } from "@/components/PointsBadge";
+import { BottomNav } from "@/components/BottomNav";
+import { TopStats } from "@/components/TopStats";
+import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
 
 
 function NotFoundComponent() {
@@ -41,6 +46,8 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const chromeless = pathname === "/auth";
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -81,15 +88,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Goalberry — sweet little habit wins" },
+      {
+        name: "description",
+        content:
+          "Goalberry is a cute habit tracker with streaks, points, rewards and calm analytics.",
+      },
+      { name: "author", content: "Goalberry" },
+      { property: "og:title", content: "Goalberry — sweet little habit wins" },
+      {
+        property: "og:description",
+        content: "Track habits, keep streaks, earn points and claim rewards.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
+
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -127,21 +141,38 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const chromeless = pathname === "/auth";
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
-        <AppSidebar />
+        {!chromeless && <AppSidebar />}
         <main className="bg-strawberry-pattern relative min-h-screen flex-1">
-          <div className="flex items-center justify-between px-3 pt-3">
-            <SidebarTrigger className="text-main-dark" />
-            <PointsBadge />
-          </div>
+          {!chromeless && (
+            <div className="flex items-center justify-between px-3 pt-3">
+              <SidebarTrigger className="text-main-dark" />
+              <TopStats />
+            </div>
+          )}
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          {!chromeless && <BottomNav />}
         </main>
       </SidebarProvider>
+      <Toaster />
     </QueryClientProvider>
   );
 }
+
 

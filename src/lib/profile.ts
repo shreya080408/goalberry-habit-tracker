@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { localStore } from "@/lib/local-store";
+import { useSession } from "@/lib/session";
 
 export type Profile = {
   id: string;
@@ -9,9 +11,11 @@ export type Profile = {
 
 export function useProfile() {
   const qc = useQueryClient();
+  const { userId, loaded: sessionLoaded } = useSession();
 
   const { data, isFetched } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", userId ?? "guest"],
+    enabled: sessionLoaded,
     queryFn: async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return null;
@@ -38,23 +42,34 @@ export function useProfile() {
     },
   });
 
+  const { data: localPref } = useQuery({
+    queryKey: ["local-prefs"],
+    queryFn: () => localStore.includeSkips(),
+    enabled: sessionLoaded && !userId,
+  });
+
   const update = useMutation({
     mutationFn: async (patch: { includeSkips: boolean }) => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
+      if (!userId) {
+        localStore.setIncludeSkips(patch.includeSkips);
+        return;
+      }
       const { error } = await supabase
         .from("profiles")
         .update({ include_skips: patch.includeSkips })
-        .eq("id", auth.user.id);
+        .eq("id", userId);
       if (error) throw error;
     },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["profile"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["profile"] });
+      void qc.invalidateQueries({ queryKey: ["local-prefs"] });
+    },
   });
 
   return {
     profile: data ?? null,
     loaded: isFetched,
-    includeSkips: data?.includeSkips ?? true,
+    includeSkips: userId ? (data?.includeSkips ?? true) : (localPref ?? true),
     setIncludeSkips: (value: boolean) => update.mutate({ includeSkips: value }),
   };
 }

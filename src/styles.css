@@ -99,7 +99,11 @@
   --main-bg-strawberry-1: url("/__l5e/assets-v1/2450888c-d2e4-41e7-ae8b-f7b4a80d2cd9/main-bg-strawberry-1.jpeg");
   --main-bg-strawberry-2: url("/__l5e/assets-v1/46c429d3-e089-4716-8bf3-14425c9dec0b/main-bg-strawberry-2.jpeg");
   --main-bg-strawberry-3: url("/__l5e/assets-v1/c4d5a467-e552-4abf-abff-7f0c66f961e8/main-bg-strawberry-3.jpeg");
+  --main-bg-strawberry-mobile: url("/__l5e/assets-v1/3cac662c-ece8-405e-93b3-670c1f411a0f/main-bg-strawberry-mobile.jpeg");
+  --main-bg-strawberry-tablet: url("/__l5e/assets-v1/81d75c9c-e77e-42c2-a07a-e108dca4f436/main-bg-strawberry-tablet.jpeg");
+  --main-bg-strawberry-desktop: url("/__l5e/assets-v1/7d1afbfc-e06e-466f-87c1-8de3f96d9007/main-bg-strawberry-desktop.jpeg");
   --main-icon-strawberry-3: url("/__l5e/assets-v1/a1962f31-eb20-4842-a235-292ad8efae0e/main-icon-strawberry-3.png");
+  --main-icon-strawberry-4: url("/__l5e/assets-v1/c68319c4-bd82-4027-be78-bd91a228a20c/main-icon-strawberry-4.png");
 
 
 
@@ -216,12 +220,19 @@
 }
 
 @utility bg-strawberry-pattern {
-  background-image: var(--main-bg-strawberry-3);
+  background-image: var(--main-bg-strawberry-mobile);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-color: var(--main-light);
+
+  @media (min-width: 640px) {
+    background-image: var(--main-bg-strawberry-tablet);
+  }
+  @media (min-width: 1024px) {
+    background-image: var(--main-bg-strawberry-desktop);
+  }
 }
 
 @utility bg-strawberry-pattern-2 {
@@ -230,6 +241,7 @@
   background-repeat: repeat;
   background-color: var(--main-light);
 }
+
 
 @utility serif-italic {
   font-family: var(--font-serif);
@@ -261,69 +273,60 @@
   box-shadow: -4px 4px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
 }
 
-/* ---- Playful bouncy motion ---- */
+/* ---- Calm, premium motion ---- */
 @keyframes pop-in {
-  0% {
+  from {
     opacity: 0;
-    transform: translateY(14px) scale(0.94);
+    transform: translateY(10px);
   }
-  60% {
+  to {
     opacity: 1;
-    transform: translateY(-5px) scale(1.03);
-  }
-  80% {
-    transform: translateY(2px) scale(0.99);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
-@keyframes bounce-pop {
-  0% {
-    transform: scale(0.7);
+@keyframes soft-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
   }
-  55% {
-    transform: scale(1.18);
-  }
-  75% {
-    transform: scale(0.94);
-  }
-  100% {
+  to {
+    opacity: 1;
     transform: scale(1);
   }
 }
 
 @utility animate-pop-in {
-  animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: pop-in 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 @utility animate-bounce-pop {
-  animation: bounce-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: soft-in 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 @utility bouncy {
   transition:
-    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* Kept for API compatibility: now a restrained press response. */
+@utility bouncy-press {
+  transition:
+    transform 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.2s ease,
     background-color 0.2s ease;
 }
 
-@utility bouncy-press {
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
 @layer base {
-  .bouncy-press:hover {
-    transform: translateY(-2px) scale(1.03);
-  }
   .bouncy-press:active {
-    transform: translateY(1px) scale(0.95);
+    transform: scale(0.98);
   }
   [data-slot="dialog-content"],
   [data-slot="alert-dialog-content"] {
-    animation: bounce-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: soft-in 0.24s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -334,4 +337,5 @@
     }
   }
 }
+
 
