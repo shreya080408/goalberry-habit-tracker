@@ -1,32 +1,47 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { PageShell } from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/lib/profile";
+import { chooseGuest, clearGuest, useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
       { title: "Settings — Goalberry" },
-      { name: "description", content: "View your Goalberry account details and sign out." },
+      {
+        name: "description",
+        content: "Your Goalberry account, sign-in options and analytics preferences.",
+      },
       { property: "og:title", content: "Settings — Goalberry" },
-      { property: "og:description", content: "Your Goalberry account details." },
+      { property: "og:description", content: "Account details and analytics preferences." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SettingsPage,
 });
 
+const cardStyle = {
+  "--shadow-solid-color": "var(--main-palette-strawberry-2)",
+} as React.CSSProperties;
+
 function SettingsPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState<string | null>(null);
-  const [since, setSince] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const { session, isGuest } = useSession();
+  const { includeSkips, setIncludeSkips } = useProfile();
 
-  useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? null);
-      setSince(data.user?.created_at ?? null);
-    });
-  }, []);
+  const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    chooseGuest();
+    void navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <PageShell
@@ -39,28 +54,57 @@ function SettingsPage() {
     >
       <div
         className="shadow-solid mt-8 space-y-4 rounded-xl border border-border bg-card p-5"
-        style={{ "--shadow-solid-color": "var(--main-palette-strawberry-2)" } as React.CSSProperties}
+        style={cardStyle}
       >
-        <div>
-          <p className="text-xs uppercase tracking-wide text-main-dark/60">Signed in as</p>
-          <p className="text-base font-semibold text-main-dark">{email ?? "—"}</p>
+        {isGuest ? (
+          <>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-main-dark/60">Account</p>
+              <p className="text-base font-semibold text-main-dark">Using Goalberry as a guest</p>
+              <p className="mt-1 text-sm text-main-dark/70">
+                Everything is stored on this device. Sign in and it all moves to your account
+                automatically.
+              </p>
+            </div>
+            <Button
+              className="bouncy-press"
+              onClick={() => {
+                clearGuest();
+                void navigate({ to: "/auth" });
+              }}
+            >
+              Sign in or create an account
+            </Button>
+          </>
+        ) : (
+          <>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-main-dark/60">Signed in as</p>
+              <p className="text-base font-semibold text-main-dark">{session?.email ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-main-dark/60">Sign-in method</p>
+              <p className="text-base font-semibold capitalize text-main-dark">
+                {session?.provider ?? "—"}
+              </p>
+            </div>
+            <Button variant="outline" className="bouncy-press" onClick={() => void signOut()}>
+              Sign out
+            </Button>
+          </>
+        )}
+      </div>
+
+      <div
+        className="shadow-solid mt-6 rounded-xl border border-border bg-card p-5"
+        style={cardStyle}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="include-skips" className="text-sm text-main-dark">
+            Include skips in success rates
+          </Label>
+          <Switch id="include-skips" checked={includeSkips} onCheckedChange={setIncludeSkips} />
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-main-dark/60">Member since</p>
-          <p className="text-base font-semibold text-main-dark">
-            {since ? new Date(since).toLocaleDateString() : "—"}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          className="bouncy-press"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            void navigate({ to: "/auth" });
-          }}
-        >
-          Sign out
-        </Button>
       </div>
     </PageShell>
   );
