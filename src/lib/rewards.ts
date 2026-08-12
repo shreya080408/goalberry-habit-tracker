@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { INSUFFICIENT_POINTS } from "@/lib/habits";
+import { INSUFFICIENT_POINTS, totalPoints } from "@/lib/habits";
+import { localStore, newId } from "@/lib/local-store";
+import { useSession } from "@/lib/session";
 
 export type Reward = {
   id: string;
@@ -18,12 +20,20 @@ type RewardRow = {
   created_at: string;
 };
 
+function localBalance() {
+  const claimed = localStore.rewards().filter((r) => r.claimedAt);
+  return totalPoints(localStore.habits()) - claimed.reduce((sum, r) => sum + r.points, 0);
+}
+
 export function useRewards() {
   const qc = useQueryClient();
+  const { userId, loaded: sessionLoaded } = useSession();
 
   const { data, isFetched } = useQuery({
-    queryKey: ["rewards"],
+    queryKey: ["rewards", userId ?? "guest"],
+    enabled: sessionLoaded,
     queryFn: async () => {
+      if (!userId) return localStore.rewards();
       const { data, error } = await supabase
         .from("rewards")
         .select("*")
@@ -44,8 +54,26 @@ export function useRewards() {
     void qc.invalidateQueries({ queryKey: ["points"] });
   };
 
+  const saveLocal = (next: Reward[]) => {
+    localStore.setRewards(next);
+    invalidate();
+  };
+
   const createMutation = useMutation({
     mutationFn: async (input: { name: string; points: number }) => {
+      if (!userId) {
+        saveLocal([
+          ...localStore.rewards(),
+          {
+            id: newId(),
+            name: input.name.trim(),
+            points: input.points,
+            claimedAt: null,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+        return;
+      }
       const { error } = await supabase
         .from("rewards")
         .insert({ name: input.name.trim(), points: input.points });
@@ -56,6 +84,10 @@ export function useRewards() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!userId) {
+        saveLocal(localStore.rewards().filter((r) => r.id !== id));
+        return;
+      }
       const { error } = await supabase.from("rewards").delete().eq("id", id);
       if (error) throw error;
     },
@@ -64,6 +96,17 @@ export function useRewards() {
 
   const claimMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!userId) {
+        const reward = localStore.rewards().find((r) => r.id === id);
+        if (!reward || reward.claimedAt) return;
+        if (localBalance() < reward.points) throw new Error(INSUFFICIENT_POINTS);
+        saveLocal(
+          localStore
+            .rewards()
+            .map((r) => (r.id === id ? { ...r, claimedAt: new Date().toISOString() } : r)),
+        );
+        return;
+      }
       const { error } = await supabase.rpc("claim_reward", { _reward_id: id });
       if (error) {
         throw new Error(
