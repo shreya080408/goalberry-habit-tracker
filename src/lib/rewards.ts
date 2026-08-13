@@ -82,6 +82,25 @@ export function useRewards() {
     onSuccess: invalidate,
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, name, points }: { id: string; name: string; points: number }) => {
+      if (!userId) {
+        saveLocal(
+          localStore
+            .rewards()
+            .map((r) => (r.id === id ? { ...r, name: name.trim(), points } : r)),
+        );
+        return;
+      }
+      const { error } = await supabase
+        .from("rewards")
+        .update({ name: name.trim(), points })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!userId) {
@@ -125,6 +144,8 @@ export function useRewards() {
     claimed: rewards.filter((r) => r.claimedAt),
     loaded: isFetched,
     createReward: (input: { name: string; points: number }) => createMutation.mutate(input),
+    updateReward: (input: { id: string; name: string; points: number }) =>
+      updateMutation.mutate(input),
     deleteReward: (id: string) => deleteMutation.mutate(id),
     claimReward: (id: string) => claimMutation.mutateAsync(id),
   };
