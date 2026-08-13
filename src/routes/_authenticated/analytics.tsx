@@ -12,7 +12,6 @@ import {
   bestStreak,
   currentStreak,
   dailySeries,
-  difficultyColor,
   overallSuccessRate,
   successRate,
   useHabits,
