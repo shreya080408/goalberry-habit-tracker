@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +11,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PageShell } from "@/components/PageShell";
+import { ProgressBar } from "@/components/ProgressBar";
 import { StrawberryIcon } from "@/components/icons/StrawberryIcon";
-import { totalPoints, useHabits } from "@/lib/habits";
-import { useRewards } from "@/lib/rewards";
+import { usePoints } from "@/lib/habits";
+import { useRewards, type Reward } from "@/lib/rewards";
 
 export const Route = createFileRoute("/_authenticated/rewards")({
   head: () => ({
@@ -22,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/rewards")({
       { title: "Rewards — Goalberry habit tracker" },
       {
         name: "description",
-        content: "Set rewards, track how many points you still need and redeem them when full.",
+        content: "Set rewards, track how many points you still need and claim them when full.",
       },
       { property: "og:title", content: "Rewards — Goalberry habit tracker" },
       {
@@ -34,34 +45,54 @@ export const Route = createFileRoute("/_authenticated/rewards")({
   component: Rewards,
 });
 
+const cardShadow = {
+  "--shadow-solid-color": "var(--main-palette-strawberry-2)",
+} as React.CSSProperties;
+
 function Rewards() {
-  const { habits } = useHabits();
-  const { rewards, loaded, createReward, deleteReward } = useRewards();
-  const [open, setOpen] = useState(false);
+  const balance = usePoints();
+  const { open: openRewards, claimed, loaded, createReward, updateReward, deleteReward, claimReward } =
+    useRewards();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Reward | null>(null);
   const [name, setName] = useState("");
   const [points, setPoints] = useState("100");
+  const [claimTarget, setClaimTarget] = useState<Reward | null>(null);
 
-  const earned = totalPoints(habits);
   const canSave = name.trim().length > 0 && Number(points) > 0;
+
+  const startCreate = () => {
+    setEditing(null);
+    setName("");
+    setPoints("100");
+    setDialogOpen(true);
+  };
+
+  const startEdit = (reward: Reward) => {
+    setEditing(reward);
+    setName(reward.name);
+    setPoints(String(reward.points));
+    setDialogOpen(true);
+  };
 
   return (
     <PageShell
       title="Rewards"
       subtitle={
-        <p className="serif-italic flex items-center gap-1.5 text-sm text-main-dark/70">
+        <p className="serif-italic subtitle-chip flex items-center gap-1.5 text-sm text-main-dark/80">
           <StrawberryIcon className="size-4" />
-          {earned} points earned
+          {balance} points available
         </p>
       }
       action={
-        <Button onClick={() => setOpen(true)}>
+        <Button className="bouncy-press" onClick={startCreate}>
           <Plus className="size-4" />
           Create reward
         </Button>
       }
     >
-      <section className="mt-6 space-y-3">
-        {loaded && rewards.length === 0 && (
+      <section className="mt-6 space-y-4">
+        {loaded && openRewards.length === 0 && claimed.length === 0 && (
           <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
             <StrawberryIcon className="mx-auto size-7" />
             <h2 className="mt-3 font-medium text-main-dark">No rewards yet</h2>
@@ -71,22 +102,30 @@ function Rewards() {
           </div>
         )}
 
-        {rewards.map((reward) => {
-          const progress = Math.min(1, reward.points > 0 ? earned / reward.points : 0);
-          const remaining = Math.max(0, reward.points - earned);
+        {openRewards.map((reward) => {
+          const progress = reward.points > 0 ? balance / reward.points : 0;
+          const remaining = Math.max(0, reward.points - balance);
           return (
             <article
               key={reward.id}
-              className="rounded-xl border border-border bg-card p-4 shadow-sm"
-              style={{ borderLeft: `4px solid var(--main-palette-strawberry-3)` }}
+              className="shadow-solid rounded-xl border border-border bg-card p-4"
+              style={cardShadow}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-medium text-main-dark">{reward.name}</h3>
                   <p className="mt-0.5 text-xs text-main-dark/70">
                     {remaining > 0 ? `${remaining} points left` : `${reward.points} points`}
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Edit ${reward.name}`}
+                  onClick={() => startEdit(reward)}
+                >
+                  <Pencil className="size-4" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -98,32 +137,83 @@ function Rewards() {
                 </Button>
               </div>
 
-              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-md bg-muted">
-                <div
-                  className="h-full rounded-md transition-all duration-500"
-                  style={{
-                    width: `${progress * 100}%`,
-                    backgroundColor: "var(--main-palette-strawberry-5)",
-                  }}
-                />
+              <div className="mt-3">
+                <ProgressBar value={progress} showLabel />
               </div>
 
-              {progress >= 1 && (
-                <p className="serif-italic mt-2 text-xs text-main-dark/60">~ can redeem</p>
-              )}
+              <div className="mt-3 flex items-center justify-between gap-3">
+                {progress >= 1 && (
+                  <p className="serif-italic text-xs text-main-dark/70">~ can redeem</p>
+                )}
+                <Button
+                  size="sm"
+                  disabled={balance < reward.points}
+                  onClick={() => setClaimTarget(reward)}
+                  className="bouncy-press ml-auto rounded-lg text-main-light hover:opacity-90"
+                  style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
+                >
+                  Claim
+                </Button>
+              </div>
             </article>
           );
         })}
       </section>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {claimed.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-display text-lg text-main-dark">Claimed rewards</h2>
+          <div className="mt-4 space-y-3">
+            {claimed.map((reward) => (
+              <article
+                key={reward.id}
+                className="shadow-solid flex items-center gap-3 rounded-xl border border-border bg-card p-4 opacity-90"
+                style={cardShadow}
+              >
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-medium text-main-dark">{reward.name}</h3>
+                  <p className="serif-italic mt-0.5 text-xs text-main-dark/70">
+                    claimed{" "}
+                    {new Date(reward.claimedAt!).toLocaleDateString(undefined, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <span className="font-raleway text-sm font-semibold text-main-dark">
+                  -{reward.points}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Delete ${reward.name}`}
+                  className="text-destructive"
+                  onClick={() => deleteReward(reward.id)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">Create reward</DialogTitle>
+            <DialogTitle className="font-display">
+              {editing ? "Edit reward" : "Create reward"}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-1">
-            <div className="space-y-2">
-              <Label htmlFor="reward-name">Name</Label>
+          <div className="space-y-5 py-1">
+            <div className="space-y-3">
+              <Label
+                htmlFor="reward-name"
+                className="w-fit border-b-2 border-main-dark pb-1 font-semibold text-main-dark"
+              >
+                Name:
+              </Label>
               <Input
                 id="reward-name"
                 value={name}
@@ -132,8 +222,13 @@ function Rewards() {
                 autoFocus
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="reward-points">Points needed</Label>
+            <div className="space-y-3">
+              <Label
+                htmlFor="reward-points"
+                className="w-fit border-b-2 border-main-dark pb-1 font-semibold text-main-dark"
+              >
+                Points needed:
+              </Label>
               <Input
                 id="reward-points"
                 type="number"
@@ -144,23 +239,49 @@ function Rewards() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            <Button variant="ghost" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
             <Button
               disabled={!canSave}
               onClick={() => {
-                createReward({ name, points: Number(points) });
-                setName("");
-                setPoints("100");
-                setOpen(false);
+                if (editing) {
+                  updateReward({ id: editing.id, name, points: Number(points) });
+                } else {
+                  createReward({ name, points: Number(points) });
+                }
+                setDialogOpen(false);
+                setEditing(null);
               }}
             >
-              Create reward
+              {editing ? "Save changes" : "Create reward"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!claimTarget} onOpenChange={(o) => !o && setClaimTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Claim this reward?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{claimTarget?.points ?? 0} points</strong> will be deducted and{" "}
+              {claimTarget?.name} moves to your claimed rewards.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (claimTarget) void claimReward(claimTarget.id).catch(() => undefined);
+                setClaimTarget(null);
+              }}
+            >
+              Confirm claim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageShell>
   );
 }
