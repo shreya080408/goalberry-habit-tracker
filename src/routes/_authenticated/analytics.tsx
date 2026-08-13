@@ -66,7 +66,7 @@ function Ring({
             cy={size / 2}
             r={r}
             fill="none"
-            stroke="var(--muted)"
+            stroke="var(--main-dark)"
             strokeWidth={stroke}
           />
           <circle
@@ -76,7 +76,7 @@ function Ring({
             fill="none"
             stroke={color}
             strokeWidth={stroke}
-            strokeLinecap="round"
+            strokeLinecap="butt"
             strokeDasharray={c}
             strokeDashoffset={c * (1 - Math.min(1, Math.max(0, value)))}
             className="transition-all duration-700"
@@ -84,7 +84,7 @@ function Ring({
         </svg>
         <span
           className={cn(
-            "absolute inset-0 flex items-center justify-center font-display text-main-dark",
+            "absolute inset-0 flex items-center justify-center font-raleway font-semibold text-main-dark",
             size > 110 ? "text-2xl" : "text-sm",
           )}
         >
@@ -114,15 +114,20 @@ function Analytics() {
   const { habits } = useHabits();
   const [range, setRange] = useState<(typeof RANGES)[number]["key"]>("weekly");
   const [includeSkips, setIncludeSkips] = useState(true);
+  const [focusHabit, setFocusHabit] = useState<string>("all");
 
   const days = RANGES.find((r) => r.key === range)!.days;
   const overall = useMemo(
     () => overallSuccessRate(habits, includeSkips),
     [habits, includeSkips],
   );
+  const graphHabits = useMemo(
+    () => (focusHabit === "all" ? habits : habits.filter((h) => h.id === focusHabit)),
+    [habits, focusHabit],
+  );
   const series = useMemo(
-    () => dailySeries(habits, days, includeSkips),
-    [habits, days, includeSkips],
+    () => dailySeries(graphHabits, days, includeSkips),
+    [graphHabits, days, includeSkips],
   );
 
   return (
@@ -134,7 +139,7 @@ function Analytics() {
         </p>
       }
     >
-      <section className="mt-6 rounded-xl border border-border bg-card p-5 shadow-sm">
+      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between gap-3">
           <Label htmlFor="include-skips" className="text-sm text-main-dark">
             Include skips in success rates
@@ -143,10 +148,10 @@ function Analytics() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-6">
         <h2 className="font-display text-lg text-main-dark">Overall</h2>
         <div className="mt-4 flex flex-col items-center">
-          <Ring value={overall} color="var(--main-palette-strawberry-5)" size={148} />
+          <Ring value={overall} color="var(--main-palette-strawberry-4)" size={148} />
           <p className="mt-3 text-sm text-main-dark/70">Overall success rate</p>
           <div className="mt-2">
             <StreakPill value={bestStreak(habits)} label="best current streak" />
@@ -154,7 +159,7 @@ function Analytics() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-6">
         <h2 className="font-display text-lg text-main-dark">By habit</h2>
         {habits.length === 0 ? (
           <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -166,7 +171,7 @@ function Analytics() {
               <div key={habit.id} className="flex flex-col items-center gap-1">
                 <Ring
                   value={successRate(habit, includeSkips)}
-                  color={difficultyColor(habit.difficulty)}
+                  color="var(--main-palette-strawberry-4)"
                   label={habit.name}
                 />
                 <StreakPill value={currentStreak(habit)} label="streak" />
@@ -176,7 +181,7 @@ function Analytics() {
         )}
       </section>
 
-      <section className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg text-main-dark">Trends</h2>
           <div className="flex gap-1 rounded-lg border border-border p-1">
@@ -198,9 +203,27 @@ function Analytics() {
           </div>
         </div>
 
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {[{ id: "all", name: "All habits" }, ...habits].map((h) => (
+            <button
+              key={h.id}
+              type="button"
+              onClick={() => setFocusHabit(h.id)}
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                focusHabit === h.id
+                  ? "border-main-dark bg-main-dark text-main-light"
+                  : "border-border text-main-dark/70 hover:bg-accent/40",
+              )}
+            >
+              {h.name}
+            </button>
+          ))}
+        </div>
+
         <ChartContainer
           className="mt-5 h-64 w-full"
-          config={{ rate: { label: "Success rate", color: "var(--main-palette-strawberry-2)" } }}
+          config={{ rate: { label: "Success rate", color: "var(--main-palette-strawberry-4)" } }}
         >
           <LineChart data={series} margin={{ left: -20, right: 8, top: 8 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -217,7 +240,7 @@ function Analytics() {
               type="monotone"
               dataKey="rate"
               stroke="var(--color-rate)"
-              strokeWidth={2}
+              strokeWidth={3}
               dot={false}
             />
           </LineChart>
