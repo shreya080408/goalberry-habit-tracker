@@ -44,6 +44,7 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --font-sans: "Manrope", "Raleway", sans-serif;
   --font-serif: "Lora", Georgia, serif;
+  --font-raleway: "Raleway", "Manrope", sans-serif;
   --font-display: "LEMON MILK", "Oswald", "Manrope", sans-serif;
 
   --color-background: var(--background);
@@ -212,6 +213,10 @@
     border-color: var(--color-border);
   }
 
+  .font-display {
+    font-weight: 700;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
@@ -246,6 +251,7 @@
 @utility serif-italic {
   font-family: var(--font-serif);
   font-style: italic;
+  font-weight: 600;
 }
 
 /* Page heading: solid bottom-left drop shadow in main-light */
@@ -258,19 +264,33 @@
 /* Italic sub-heading chip sitting on a main-light background */
 @utility subtitle-chip {
   display: inline-block;
-  background-color: var(--main-light);
-  border-radius: calc(var(--radius) - 2px);
-  padding: 0.125rem 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+/* Progress bar / ring palette: unfilled main-dark, filled strawberry-4 */
+@utility progress-track {
+  background-color: var(--main-dark);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Sliced-pie fill alternating strawberry-4 and strawberry-5 */
+@utility progress-fill {
+  border-radius: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--main-palette-strawberry-4) 0 12px,
+    var(--main-palette-strawberry-5) 12px 24px
+  );
 }
 
 /* One shared shadow style: solid, bottom-left, no blur */
 @utility shadow-solid {
-  box-shadow: -6px 6px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
+  box-shadow: -3px 3px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
 }
 
 @utility shadow-solid-sm {
-  box-shadow: -4px 4px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
+  box-shadow: -2px 2px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
 }
 
 /* ---- Calm, premium motion ---- */

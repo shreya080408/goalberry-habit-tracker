@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { HabitDialog } from "@/components/HabitDialog";
 import { PageShell } from "@/components/PageShell";
+import { ProgressBar } from "@/components/ProgressBar";
 import { StrawberryIcon } from "@/components/icons/StrawberryIcon";
 import {
   DAY_LABELS,
@@ -91,22 +92,8 @@ function Index() {
       }
     >
       {todays.length > 0 && (
-        <div className="mt-6 flex items-center gap-3">
-          <div
-            className="h-2 flex-1 overflow-hidden rounded-md"
-            style={{ backgroundColor: "var(--main-palette-strawberry-1)" }}
-          >
-            <div
-              className="h-full rounded-md transition-all duration-500"
-              style={{
-                width: `${progress * 100}%`,
-                backgroundColor: "var(--main-palette-strawberry-5)",
-              }}
-            />
-          </div>
-          <span className="text-sm font-semibold text-main-dark">
-            {Math.round(progress * 100)}%
-          </span>
+        <div className="mt-6">
+          <ProgressBar value={progress} showLabel />
         </div>
       )}
 
@@ -197,17 +184,17 @@ function Index() {
                     aria-label={`Unmark ${habit.name}`}
                     onClick={() => toggleCompletion(habit.id, today)}
                     className="bouncy-press flex size-9 items-center justify-center rounded-lg"
-                    style={{ backgroundColor: "var(--main-palette-strawberry-4)" }}
+                    style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
                   >
-                    <Check className="size-5 text-main-dark" />
+                    <Check className="size-5 text-main-light" />
                   </button>
                 ) : (
                   <Button
                     size="sm"
                     disabled={skipped}
                     onClick={() => toggleCompletion(habit.id, today)}
-                    className="bouncy-press rounded-lg text-main-dark hover:opacity-90"
-                    style={{ backgroundColor: "var(--main-palette-strawberry-4)" }}
+                    className="bouncy-press rounded-lg text-main-light hover:opacity-90"
+                    style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
                   >
                     Done
                   </Button>

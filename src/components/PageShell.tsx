@@ -17,7 +17,7 @@ export function PageShell({
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             {subtitle}
-            <h1 className="font-display heading-shadow mt-2 text-3xl font-normal tracking-tight text-main-dark">
+            <h1 className="font-display heading-shadow mt-2 text-3xl font-bold tracking-tight text-main-dark">
               {title}
             </h1>
           </div>
