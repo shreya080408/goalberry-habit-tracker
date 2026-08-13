@@ -213,6 +213,10 @@
     border-color: var(--color-border);
   }
 
+  .font-display {
+    font-weight: 700;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
