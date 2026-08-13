@@ -36,7 +36,7 @@ function FieldLabel({ children, htmlFor }: { children: string; htmlFor?: string 
   return (
     <Label
       htmlFor={htmlFor}
-      className="w-fit border-b border-main-dark/40 pb-0.5 text-main-dark"
+      className="w-fit border-b-2 border-main-dark pb-1 font-semibold text-main-dark"
     >
       {children}:
     </Label>
@@ -71,8 +71,8 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
           <DialogTitle className="font-display">{habit ? "Edit habit" : "Create habit"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-7 py-1">
-          <div className="space-y-3">
+        <div className="space-y-9 py-1">
+          <div className="space-y-5">
             <FieldLabel htmlFor="habit-name">Name</FieldLabel>
             <Input
               id="habit-name"
@@ -83,7 +83,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-5">
             <FieldLabel htmlFor="habit-desc">Desc (optional)</FieldLabel>
             <Textarea
               id="habit-desc"
@@ -94,7 +94,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-5">
             <FieldLabel>Repeat on</FieldLabel>
             <div className="flex gap-2">
               {DAY_LABELS.map((label, i) => (
@@ -117,7 +117,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-5">
             <FieldLabel>Difficulty</FieldLabel>
             <div className="flex items-center gap-3">
               {DIFFICULTY_LEVELS.map((level) => (
@@ -149,7 +149,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-5">
             <FieldLabel>End date (optional)</FieldLabel>
             <div className="flex items-center gap-2">
               <Popover>
