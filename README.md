@@ -1,26 +1,27 @@
 # Goalberry
 
-Create a habit tracking app with all basic features such as habit creation, modification, deletion, check completion, and select days, with a simple ui which can be customized later
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://goalberry-habit-tracker.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/96658cfd-ab2c-4982-8125-216189ea4d86).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+A habit tracking app: create, edit, and delete habits; mark them done or skip them; pick which days each habit repeats on; and track progress with streaks, points, and rewards. Built with React 19, TanStack Start/Router/Query, Tailwind CSS 4, shadcn/Radix UI, and Supabase for backend and auth.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+This project runs on [Bun](https://bun.sh).
 
 ```sh
 git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+cd goalberry-habit-tracker
+bun install
+bun run dev
 ```
+
+## Environment
+
+The app needs a Supabase project. Copy your project's URL and publishable (anon) key into a `.env` file at the repo root:
+
+```
+SUPABASE_URL="https://<your-project-ref>.supabase.co"
+SUPABASE_PUBLISHABLE_KEY="<your-publishable-key>"
+VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="<your-publishable-key>"
+```
+
+Database schema and Row Level Security policies are defined in `supabase/migrations/`.
