@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame } from "lucide-react";
+import { StreakIcon } from "@/components/icons/PhaseIcons";
 import {
   Dialog,
   DialogContent,
@@ -35,10 +35,9 @@ export function TopStats() {
           className="bouncy-press flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-semibold text-main-dark"
           style={{ "--shadow-solid-color": "var(--main-palette-strawberry-3)" } as React.CSSProperties}
         >
-          <Flame
+          <StreakIcon
             className="size-4"
             style={{ color: "var(--main-palette-strawberry-2)" }}
-            fill="var(--main-palette-strawberry-3)"
           />
           {streak}
         </span>

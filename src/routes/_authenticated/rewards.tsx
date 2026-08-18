@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { PlusIcon } from "@/components/icons/PhaseIcons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,21 +80,20 @@ function Rewards() {
     <PageShell
       title="Rewards"
       subtitle={
-        <p className="serif-italic subtitle-chip flex items-center gap-1.5 text-sm text-main-dark/80">
-          <StrawberryIcon className="size-4" />
-          {balance} points available
+        <p className="subtitle-mono subtitle-chip text-sm text-main-dark/80">
+          Your own source of motivation
         </p>
       }
       action={
         <Button className="bouncy-press" onClick={startCreate}>
-          <Plus className="size-4" />
+          <PlusIcon className="size-4" />
           Create reward
         </Button>
       }
     >
       <section className="mt-6 space-y-4">
         {loaded && openRewards.length === 0 && claimed.length === 0 && (
-          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
             <StrawberryIcon className="mx-auto size-7" />
             <h2 className="mt-3 font-medium text-main-dark">No rewards yet</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -108,7 +108,7 @@ function Rewards() {
           return (
             <article
               key={reward.id}
-              className="shadow-solid rounded-xl border border-border bg-card p-4"
+              className="shadow-solid rounded-lg bg-card p-4"
               style={cardShadow}
             >
               <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ function Rewards() {
 
               <div className="mt-3 flex items-center justify-between gap-3">
                 {progress >= 1 && (
-                  <p className="serif-italic text-xs text-main-dark/70">~ can redeem</p>
+                  <p className="subtitle-mono text-xs text-main-dark/70">~ can redeem</p>
                 )}
                 <Button
                   size="sm"
@@ -167,12 +167,12 @@ function Rewards() {
             {claimed.map((reward) => (
               <article
                 key={reward.id}
-                className="shadow-solid flex items-center gap-3 rounded-xl border border-border bg-card p-4 opacity-90"
+                className="shadow-solid flex items-center gap-3 rounded-lg bg-card p-4 opacity-90"
                 style={cardShadow}
               >
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-medium text-main-dark">{reward.name}</h3>
-                  <p className="serif-italic mt-0.5 text-xs text-main-dark/70">
+                  <p className="subtitle-mono mt-0.5 text-xs text-main-dark/70">
                     claimed{" "}
                     {new Date(reward.claimedAt!).toLocaleDateString(undefined, {
                       month: "long",
@@ -181,7 +181,7 @@ function Rewards() {
                     })}
                   </p>
                 </div>
-                <span className="font-raleway text-sm font-semibold text-main-dark">
+                <span className="font-stat text-sm font-semibold text-main-dark">
                   -{reward.points}
                 </span>
                 <Button

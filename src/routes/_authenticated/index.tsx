@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Check, ChevronDown, Flame, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { CheckIcon, PlusIcon, StreakIcon } from "@/components/icons/PhaseIcons";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -76,7 +77,7 @@ function Index() {
     <PageShell
       title="Today's Habits"
       subtitle={
-        <p className="serif-italic subtitle-chip text-sm font-semibold text-main-dark/80">
+        <p className="subtitle-mono subtitle-chip text-sm text-main-dark/80">
           {today.toLocaleDateString(undefined, {
             weekday: "long",
             month: "long",
@@ -86,7 +87,7 @@ function Index() {
       }
       action={
         <Button className="bouncy-press" onClick={() => setDialogOpen(true)}>
-          <Plus className="size-4" />
+          <PlusIcon className="size-4" />
           Create habit
         </Button>
       }
@@ -99,14 +100,14 @@ function Index() {
 
       <section className="mt-6 space-y-5">
         {loaded && todays.length === 0 && (
-          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
             <StrawberryIcon className="mx-auto size-8" />
             <h2 className="mt-3 font-medium text-main-dark">Nothing due today</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Create a habit and pick the days you want to repeat it.
             </p>
             <Button className="mt-5" variant="secondary" onClick={() => setDialogOpen(true)}>
-              <Plus className="size-4" />
+              <PlusIcon className="size-4" />
               Create habit
             </Button>
           </div>
@@ -121,13 +122,8 @@ function Index() {
           return (
             <article
               key={habit.id}
-              className="shadow-solid bouncy flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-              style={
-                {
-                  borderLeft: `4px solid ${accent}`,
-                  "--shadow-solid-color": accent,
-                } as React.CSSProperties
-              }
+              className="shadow-solid bouncy flex items-center gap-3 rounded-lg bg-card p-4"
+              style={{ "--shadow-solid-color": accent } as React.CSSProperties}
             >
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-medium text-main-dark">{habit.name}</h3>
@@ -168,10 +164,9 @@ function Index() {
                   ))}
                 </p>
                 <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-main-dark/80">
-                  <Flame
+                  <StreakIcon
                     className="size-3.5"
                     style={{ color: "var(--main-palette-strawberry-2)" }}
-                    fill="var(--main-palette-strawberry-3)"
                   />
                   {streak}
                 </p>
@@ -186,7 +181,7 @@ function Index() {
                     className="bouncy-press flex size-9 items-center justify-center rounded-lg"
                     style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
                   >
-                    <Check className="size-5 text-main-light" />
+                    <CheckIcon className="size-5 text-main-light" />
                   </button>
                 ) : (
                   <Button

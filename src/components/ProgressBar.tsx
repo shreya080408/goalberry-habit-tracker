@@ -22,7 +22,7 @@ export function ProgressBar({
       </div>
       {showLabel && (
         <span
-          className={cn("font-raleway text-sm font-semibold text-main-dark", labelClassName)}
+          className={cn("font-stat text-sm font-semibold text-main-dark", labelClassName)}
         >
           {pct}%
         </span>

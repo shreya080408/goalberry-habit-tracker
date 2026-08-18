@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Flame, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { PlusIcon, StreakIcon } from "@/components/icons/PhaseIcons";
 import { Button } from "@/components/ui/button";
 import { HabitDialog } from "@/components/HabitDialog";
 import { PageShell } from "@/components/PageShell";
@@ -40,7 +41,7 @@ function AllHabits() {
   return (
     <PageShell
       title="All Habits"
-      subtitle={<p className="serif-italic text-sm text-main-dark/70">Everything you track</p>}
+      subtitle={<p className="subtitle-mono text-sm text-main-dark/70">Everything you track</p>}
       action={
         <Button
           onClick={() => {
@@ -48,14 +49,14 @@ function AllHabits() {
             setOpen(true);
           }}
         >
-          <Plus className="size-4" />
+          <PlusIcon className="size-4" />
           Create habit
         </Button>
       }
     >
       <section className="mt-6 space-y-4">
         {loaded && habits.length === 0 && (
-          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
             <StrawberryIcon className="mx-auto size-7" />
             <h2 className="mt-3 font-medium text-main-dark">No habits yet</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -69,11 +70,8 @@ function AllHabits() {
           return (
             <article
               key={habit.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-              style={{
-                borderLeft: `4px solid ${accent}`,
-                boxShadow: `-5px 5px 0 0 color-mix(in oklab, ${accent} 28%, transparent)`,
-              }}
+              className="shadow-solid flex items-center gap-3 rounded-lg bg-card p-4"
+              style={{ "--shadow-solid-color": accent } as React.CSSProperties}
             >
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-medium text-main-dark">{habit.name}</h3>
@@ -96,10 +94,9 @@ function AllHabits() {
                   Difficulty {habit.difficulty} · {pointsFor(habit.difficulty)} pts
                 </p>
                 <p className="mt-1 flex items-center gap-1 text-xs font-medium text-main-dark/80">
-                  <Flame
+                  <StreakIcon
                     className="size-3.5"
                     style={{ color: "var(--main-palette-strawberry-2)" }}
-                    fill="var(--main-palette-strawberry-3)"
                   />
                   {currentStreak(habit)}
                 </p>

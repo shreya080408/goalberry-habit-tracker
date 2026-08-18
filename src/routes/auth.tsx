@@ -115,13 +115,10 @@ function AuthPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="animate-pop-in w-full max-w-sm rounded-2xl border border-border bg-card/95 p-7 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.35)] backdrop-blur">
+      <div className="animate-pop-in w-full max-w-sm rounded-2xl border border-border bg-card/95 p-7 shadow-[0_20px_60px_-30px_color-mix(in_oklab,var(--main-dark)_35%,transparent)] backdrop-blur">
         <div className="flex flex-col items-center text-center">
           <StrawberryIcon className="size-14" />
-          <p className="serif-italic subtitle-chip mt-3 text-sm text-main-dark/80">
-            Sweet little wins
-          </p>
-          <h1 className="font-display heading-shadow mt-2 text-2xl text-main-dark">Goalberry</h1>
+          <h1 className="font-display heading-shadow mt-3 text-2xl text-main-dark">Goalberry</h1>
         </div>
 
         {pendingConfirm ? (

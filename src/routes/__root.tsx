@@ -109,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400..700&family=Raleway:wght@400..700&family=Lora:ital,wght@0,400..600;1,400..600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Chivo:wght@900&family=Space+Grotesk:wght@400..700&family=Space+Mono:wght@400;700&display=swap",
       },
 
       {
@@ -158,11 +158,13 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
         {!chromeless && <AppSidebar />}
-        <main className="bg-strawberry-pattern relative min-h-screen flex-1">
+        <main className="bg-strawberry-pattern relative flex-1">
           {!chromeless && (
-            <div className="flex items-center justify-between px-3 pt-3">
-              <SidebarTrigger className="text-main-dark" />
-              <TopStats />
+            <div className="relative z-20 flex items-center px-3 pt-3">
+              <SidebarTrigger className="text-main-dark md:hidden" />
+              <div className="ml-auto flex items-center">
+                <TopStats />
+              </div>
             </div>
           )}
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Flame } from "lucide-react";
+import { useId, useMemo, useState } from "react";
+import { StreakIcon } from "@/components/icons/PhaseIcons";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Label } from "@/components/ui/label";
@@ -42,24 +42,45 @@ const RANGES = [
   { key: "yearly", label: "Yearly", days: 365 },
 ] as const;
 
+/** Ring is divided into this many equal wedges, alternating the two fill colors — same idea as a pie chart's slices, not tied to any data value. */
+const RING_WEDGES = 12;
+
 function Ring({
   value,
-  color,
   size = 96,
   label,
 }: {
   value: number;
-  color: string;
   size?: number;
   label?: string;
 }) {
   const stroke = size / 10;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
+  const maskId = useId();
+  const wedge = c / RING_WEDGES;
+  const clampedValue = Math.min(1, Math.max(0, value));
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
+          <defs>
+            {/* Reveals only the completed fraction of the ring, same as the old progress dasharray/dashoffset. */}
+            <mask id={maskId}>
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={r}
+                fill="none"
+                stroke="white"
+                strokeWidth={stroke}
+                strokeLinecap="butt"
+                strokeDasharray={c}
+                strokeDashoffset={c * (1 - clampedValue)}
+                className="transition-all duration-700"
+              />
+            </mask>
+          </defs>
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -68,22 +89,32 @@ function Ring({
             stroke="var(--main-dark)"
             strokeWidth={stroke}
           />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth={stroke}
-            strokeLinecap="butt"
-            strokeDasharray={c}
-            strokeDashoffset={c * (1 - Math.min(1, Math.max(0, value)))}
-            className="transition-all duration-700"
-          />
+          {/* Even pie-slice wedges alternating strawberry-4 / strawberry-5, masked to the completed fraction. */}
+          <g mask={`url(#${maskId})`}>
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={r}
+              fill="none"
+              stroke="var(--main-palette-strawberry-4)"
+              strokeWidth={stroke}
+              strokeDasharray={`${wedge} ${wedge}`}
+            />
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={r}
+              fill="none"
+              stroke="var(--main-palette-strawberry-5)"
+              strokeWidth={stroke}
+              strokeDasharray={`${wedge} ${wedge}`}
+              strokeDashoffset={-wedge}
+            />
+          </g>
         </svg>
         <span
           className={cn(
-            "absolute inset-0 flex items-center justify-center font-raleway font-semibold text-main-dark",
+            "absolute inset-0 flex items-center justify-center font-stat font-semibold text-main-dark",
             size > 110 ? "text-2xl" : "text-sm",
           )}
         >
@@ -98,10 +129,9 @@ function Ring({
 function StreakPill({ value, label }: { value: number; label: string }) {
   return (
     <span className="flex items-center gap-1 text-xs font-medium text-main-dark/80">
-      <Flame
+      <StreakIcon
         className="size-3.5"
         style={{ color: "var(--main-palette-strawberry-2)" }}
-        fill="var(--main-palette-strawberry-3)"
       />
       {value}
       <span className="text-main-dark/50">{label}</span>
@@ -133,12 +163,12 @@ function Analytics() {
     <PageShell
       title="Analytics"
       subtitle={
-        <p className="serif-italic text-sm text-main-dark/70">
-          {includeSkips ? "Skips count as completions" : "Skips count as misses"}
+        <p className="subtitle-mono subtitle-chip text-sm text-main-dark/80">
+          Your progress at a glance
         </p>
       }
     >
-      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-5">
+      <section className="mt-6 shadow-solid rounded-lg bg-card p-5">
         <div className="flex items-center justify-between gap-3">
           <Label htmlFor="include-skips" className="text-sm text-main-dark">
             Include skips in success rates
@@ -147,10 +177,10 @@ function Analytics() {
         </div>
       </section>
 
-      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-6">
+      <section className="mt-6 shadow-solid rounded-lg bg-card p-6">
         <h2 className="font-display text-lg text-main-dark">Overall</h2>
         <div className="mt-4 flex flex-col items-center">
-          <Ring value={overall} color="var(--main-palette-strawberry-4)" size={148} />
+          <Ring value={overall} size={148} />
           <p className="mt-3 text-sm text-main-dark/70">Overall success rate</p>
           <div className="mt-2">
             <StreakPill value={bestStreak(habits)} label="best current streak" />
@@ -158,7 +188,7 @@ function Analytics() {
         </div>
       </section>
 
-      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-6">
+      <section className="mt-6 shadow-solid rounded-lg bg-card p-6">
         <h2 className="font-display text-lg text-main-dark">By habit</h2>
         {habits.length === 0 ? (
           <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -168,11 +198,7 @@ function Analytics() {
           <div className="mt-5 flex flex-wrap justify-center gap-6">
             {habits.map((habit) => (
               <div key={habit.id} className="flex flex-col items-center gap-1">
-                <Ring
-                  value={successRate(habit, includeSkips)}
-                  color="var(--main-palette-strawberry-4)"
-                  label={habit.name}
-                />
+                <Ring value={successRate(habit, includeSkips)} label={habit.name} />
                 <StreakPill value={currentStreak(habit)} label="streak" />
               </div>
             ))}
@@ -180,7 +206,7 @@ function Analytics() {
         )}
       </section>
 
-      <section className="mt-6 shadow-solid rounded-xl border border-border bg-card p-6">
+      <section className="mt-6 shadow-solid rounded-lg bg-card p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg text-main-dark">Trends</h2>
           <div className="flex gap-1 rounded-lg border border-border p-1">

@@ -72,7 +72,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
         </DialogHeader>
 
         <div className="space-y-9 py-1">
-          <div className="space-y-5">
+          <div className="space-y-6">
             <FieldLabel htmlFor="habit-name">Name</FieldLabel>
             <Input
               id="habit-name"
@@ -83,7 +83,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             />
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             <FieldLabel htmlFor="habit-desc">Desc (optional)</FieldLabel>
             <Textarea
               id="habit-desc"
@@ -94,7 +94,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             />
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             <FieldLabel>Repeat on</FieldLabel>
             <div className="flex gap-2">
               {DAY_LABELS.map((label, i) => (
@@ -117,7 +117,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             <FieldLabel>Difficulty</FieldLabel>
             <div className="flex items-center gap-3">
               {DIFFICULTY_LEVELS.map((level) => (
@@ -149,7 +149,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             <FieldLabel>End date (optional)</FieldLabel>
             <div className="flex items-center gap-2">
               <Popover>

@@ -18,22 +18,6 @@
  * 2. Register it in @theme inline as --color-<name>: var(--<name>)
  */
 
-@font-face {
-  font-family: "LEMON MILK";
-  src: url("/__l5e/assets-v1/843d7017-266d-4603-8c0f-37b5ba518547/LEMONMILK-Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "LEMON MILK";
-  src: url("/__l5e/assets-v1/9e1a8838-7223-489b-9142-c8daad555f2d/LEMONMILK-Bold.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -42,10 +26,10 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-sans: "Manrope", "Raleway", sans-serif;
-  --font-serif: "Lora", Georgia, serif;
-  --font-raleway: "Raleway", "Manrope", sans-serif;
-  --font-display: "LEMON MILK", "Oswald", "Manrope", sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, sans-serif;
+  --font-subtitle: "Space Mono", ui-monospace, monospace;
+  --font-stat: "Space Grotesk", ui-sans-serif, sans-serif;
+  --font-display: "Chivo", ui-sans-serif, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -87,40 +71,49 @@
   --color-main-palette-strawberry-3: var(--main-palette-strawberry-3);
   --color-main-palette-strawberry-4: var(--main-palette-strawberry-4);
   --color-main-palette-strawberry-5: var(--main-palette-strawberry-5);
+  --color-alt-palette-strawberry-1: var(--alt-palette-strawberry-1);
+  --color-alt-palette-strawberry-2: var(--alt-palette-strawberry-2);
+  --color-alt-palette-strawberry-3: var(--alt-palette-strawberry-3);
+  --color-alt-palette-strawberry-4: var(--alt-palette-strawberry-4);
+  --color-alt-palette-strawberry-5: var(--alt-palette-strawberry-5);
 }
 
 :root {
   --radius: 0.5rem;
 
-  /* Main dark / light substitutes */
-  --main-dark: oklch(0.40 0.062 57.30);
-  --main-light: oklch(0.99 0.01 57.30);
+  /* Main dark / light neutrals */
+  --main-dark: oklch(0.355 0.032 36.55); /* #4B3630 */
+  --main-light: oklch(0.946 0.035 85.41); /* #F8ECD3 */
 
-  /* Page backgrounds (main-bg-strawberry 1 and 2) */
-  --main-bg-strawberry-1: url("/__l5e/assets-v1/2450888c-d2e4-41e7-ae8b-f7b4a80d2cd9/main-bg-strawberry-1.jpeg");
-  --main-bg-strawberry-2: url("/__l5e/assets-v1/46c429d3-e089-4716-8bf3-14425c9dec0b/main-bg-strawberry-2.jpeg");
-  --main-bg-strawberry-3: url("/__l5e/assets-v1/c4d5a467-e552-4abf-abff-7f0c66f961e8/main-bg-strawberry-3.jpeg");
-  --main-bg-strawberry-mobile: url("/__l5e/assets-v1/3cac662c-ece8-405e-93b3-670c1f411a0f/main-bg-strawberry-mobile.jpeg");
-  --main-bg-strawberry-tablet: url("/__l5e/assets-v1/81d75c9c-e77e-42c2-a07a-e108dca4f436/main-bg-strawberry-tablet.jpeg");
-  --main-bg-strawberry-desktop: url("/__l5e/assets-v1/7d1afbfc-e06e-466f-87c1-8de3f96d9007/main-bg-strawberry-desktop.jpeg");
-  --main-icon-strawberry-3: url("/__l5e/assets-v1/a1962f31-eb20-4842-a235-292ad8efae0e/main-icon-strawberry-3.png");
-  --main-icon-strawberry-4: url("/__l5e/assets-v1/c68319c4-bd82-4027-be78-bd91a228a20c/main-icon-strawberry-4.png");
-
-
+  /* Page backgrounds. Phase 7: mobile/tablet/desktop and -2 point at the new
+     alt-palette background assets, bundled locally (no Lovable CDN dependency). */
+  --main-bg-strawberry-2: url("/phase7/bg-alt-pattern.jpeg");
+  --main-bg-strawberry-mobile: url("/phase7/bg-alt-light-mobile.jpeg");
+  --main-bg-strawberry-tablet: url("/phase7/bg-alt-light-tablet.jpeg");
+  --main-bg-strawberry-desktop: url("/phase7/bg-alt-light-desktop.jpeg");
 
   /* Strawberry colour palette (legacy named tokens) */
-  --brown: oklch(0.503 0.069 57.30);
-  --red: oklch(0.624 0.197 24.92);
-  --peach: oklch(0.755 0.138 31.38);
-  --light-green: oklch(0.810 0.119 134.44);
-  --sage: oklch(0.630 0.085 139.46);
+  --brown: oklch(0.600 0.080 37.71);
+  --red: oklch(0.619 0.153 24.49);
+  --coral-pink: oklch(0.737 0.139 23.12);
+  --light-green: oklch(0.794 0.105 144.90);
+  --sage: oklch(0.630 0.082 142.42);
 
-  /* Main strawberry palette — numbered 1 to 5 from left to right */
-  --main-palette-strawberry-1: oklch(0.503 0.069 57.30); /* brown */
-  --main-palette-strawberry-2: oklch(0.624 0.197 24.92); /* red */
-  --main-palette-strawberry-3: oklch(0.755 0.138 31.38); /* peach */
-  --main-palette-strawberry-4: oklch(0.810 0.119 134.44); /* light green */
-  --main-palette-strawberry-5: oklch(0.630 0.085 139.46); /* sage */
+  /* Alt strawberry palette — numbered 1 to 5 from left to right (Phase 7) */
+  --alt-palette-strawberry-1: oklch(0.600 0.080 37.71); /* brown, #AA6F5D */
+  --alt-palette-strawberry-2: oklch(0.619 0.153 24.49); /* red, #D25A56 */
+  --alt-palette-strawberry-3: oklch(0.737 0.139 23.12); /* coral-pink, #F58480 */
+  --alt-palette-strawberry-4: oklch(0.794 0.105 144.90); /* light green, #91CE92 */
+  --alt-palette-strawberry-5: oklch(0.630 0.082 142.42); /* dark green, #6C9668 */
+
+  /* Main strawberry palette — numbered 1 to 5 from left to right.
+     Phase 7: values now point at the alt palette; main-palette-strawberry-*
+     stays as the token name so every existing usage picks up the new colors. */
+  --main-palette-strawberry-1: var(--alt-palette-strawberry-1);
+  --main-palette-strawberry-2: var(--alt-palette-strawberry-2);
+  --main-palette-strawberry-3: var(--alt-palette-strawberry-3);
+  --main-palette-strawberry-4: var(--alt-palette-strawberry-4);
+  --main-palette-strawberry-5: var(--alt-palette-strawberry-5);
 
   /* Habit accent colors (all from the strawberry palette) */
   --habit-1: var(--main-palette-strawberry-2);
@@ -129,7 +122,7 @@
   --habit-4: var(--main-palette-strawberry-5);
   --habit-5: var(--main-palette-strawberry-1);
 
-  --background: oklch(0.98 0.01 57.30);
+  --background: oklch(0.98 0.01 85.41);
   --foreground: var(--main-dark);
 
   --card: var(--main-light);
@@ -141,15 +134,15 @@
   --primary-foreground: var(--main-light);
   --secondary: var(--main-palette-strawberry-4);
   --secondary-foreground: var(--main-dark);
-  --muted: oklch(0.95 0.02 57.30);
-  --muted-foreground: oklch(0.50 0.05 57.30);
+  --muted: oklch(0.95 0.02 85.41);
+  --muted-foreground: oklch(0.50 0.05 36.55);
   --accent: var(--main-palette-strawberry-3);
   --accent-foreground: var(--main-dark);
   --destructive: var(--main-palette-strawberry-2);
   --destructive-foreground: var(--main-light);
 
-  --border: oklch(0.80 0.04 57.30);
-  --input: oklch(0.90 0.03 57.30);
+  --border: oklch(0.80 0.04 85.41);
+  --input: oklch(0.90 0.03 85.41);
   --ring: var(--main-palette-strawberry-2);
 
   --chart-1: var(--main-palette-strawberry-2);
@@ -158,13 +151,13 @@
   --chart-4: var(--main-palette-strawberry-5);
   --chart-5: var(--main-palette-strawberry-1);
 
-  --sidebar: var(--main-light);
-  --sidebar-foreground: var(--main-dark);
+  --sidebar: var(--main-dark);
+  --sidebar-foreground: var(--main-light);
   --sidebar-primary: var(--main-palette-strawberry-2);
   --sidebar-primary-foreground: var(--main-light);
   --sidebar-accent: var(--main-palette-strawberry-4);
   --sidebar-accent-foreground: var(--main-dark);
-  --sidebar-border: oklch(0.88 0.04 57.30 / 60%);
+  --sidebar-border: oklch(0.88 0.04 85.41 / 60%);
   --sidebar-ring: var(--main-palette-strawberry-2);
 }
 
@@ -172,24 +165,24 @@
   --background: var(--main-dark);
   --foreground: var(--main-light);
 
-  --card: oklch(0.28 0.04 57.30);
+  --card: oklch(0.28 0.04 36.55);
   --card-foreground: var(--main-light);
-  --popover: oklch(0.28 0.04 57.30);
+  --popover: oklch(0.28 0.04 36.55);
   --popover-foreground: var(--main-light);
 
   --primary: var(--main-palette-strawberry-3);
   --primary-foreground: var(--main-dark);
-  --secondary: oklch(0.35 0.05 57.30);
+  --secondary: oklch(0.35 0.05 36.55);
   --secondary-foreground: var(--main-light);
-  --muted: oklch(0.30 0.04 57.30);
-  --muted-foreground: oklch(0.75 0.05 50);
+  --muted: oklch(0.30 0.04 36.55);
+  --muted-foreground: oklch(0.75 0.05 85.41);
   --accent: var(--main-palette-strawberry-5);
   --accent-foreground: var(--main-light);
   --destructive: var(--main-palette-strawberry-2);
   --destructive-foreground: var(--main-light);
 
-  --border: oklch(0.35 0.05 57.30 / 10%);
-  --input: oklch(0.35 0.05 57.30 / 15%);
+  --border: oklch(0.35 0.05 36.55 / 10%);
+  --input: oklch(0.35 0.05 36.55 / 15%);
   --ring: var(--main-palette-strawberry-3);
 
   --chart-1: var(--main-palette-strawberry-3);
@@ -204,7 +197,7 @@
   --sidebar-primary-foreground: var(--main-dark);
   --sidebar-accent: var(--main-palette-strawberry-5);
   --sidebar-accent-foreground: var(--main-light);
-  --sidebar-border: oklch(0.35 0.05 57.30 / 10%);
+  --sidebar-border: oklch(0.35 0.05 36.55 / 10%);
   --sidebar-ring: var(--main-palette-strawberry-3);
 }
 
@@ -214,17 +207,33 @@
   }
 
   .font-display {
-    font-weight: 700;
+    font-weight: 900;
+    text-transform: uppercase;
   }
 
+  /* Always-on base layer: a solid fill behind everything, covering the full
+     viewport regardless of window size. Never stretches or scales — it's
+     just a flat color. */
   body {
     font-family: var(--font-sans);
-    background-color: var(--color-background);
+    background-color: var(--main-dark);
     color: var(--color-foreground);
   }
 }
 
+/* The colorful wavy pattern renders as an inset panel on top of the solid
+   main-dark base, not as a full-bleed page background. Margin is constant
+   (not per-breakpoint) so the dark frame reads consistently at any size;
+   background-size:cover still scales correctly per breakpoint below.
+   background-attachment:fixed anchors the image to the viewport rather than
+   this element's own box — without it, "center" repositions every time the
+   element's height changes (e.g. the calendar's day-detail card growing or
+   shrinking as you pick a different date), making the pattern visibly shift.
+   overflow:hidden still clips it to this rounded, margined panel either way. */
 @utility bg-strawberry-pattern {
+  margin: 1.5rem;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
   background-image: var(--main-bg-strawberry-mobile);
   background-size: cover;
   background-position: center;
@@ -240,18 +249,10 @@
   }
 }
 
-@utility bg-strawberry-pattern-2 {
-  background-image: var(--main-bg-strawberry-2);
-  background-size: 320px;
-  background-repeat: repeat;
-  background-color: var(--main-light);
-}
 
-
-@utility serif-italic {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 600;
+@utility subtitle-mono {
+  font-family: var(--font-subtitle);
+  font-weight: 700;
 }
 
 /* Page heading: solid bottom-left drop shadow in main-light */
@@ -261,10 +262,11 @@
     -1px 1px 0 var(--main-light);
 }
 
-/* Italic sub-heading chip sitting on a main-light background */
+/* Italic sub-heading chip sitting on a main-light background.
+   Weight is owned by subtitle-mono — a duplicate value here was losing the
+   cascade to Tailwind's font-semibold on some pages, so don't redeclare it. */
 @utility subtitle-chip {
   display: inline-block;
-  font-weight: 700;
 }
 
 /* Progress bar / ring palette: unfilled main-dark, filled strawberry-4 */
@@ -284,9 +286,15 @@
   );
 }
 
-/* One shared shadow style: solid, bottom-left, no blur */
+/* One shared shadow style: solid, bottom-left, no blur, balanced x/y offset.
+   Whole-pixel offset on purpose — a fractional value (e.g. 2.5px) rounds
+   differently on the vertical edge vs the horizontal edge depending on the
+   card's own sub-pixel position, which reads as an uneven left/bottom
+   thickness even though the two offsets are numerically equal.
+   No border — cards sit on the bg-card (main-light) fill with just the shadow
+   marking the edge against the page background. */
 @utility shadow-solid {
-  box-shadow: -3px 3px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
+  box-shadow: -5px 5px 0 0 var(--shadow-solid-color, var(--main-palette-strawberry-2));
 }
 
 @utility shadow-solid-sm {

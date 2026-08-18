@@ -47,13 +47,13 @@ function SettingsPage() {
     <PageShell
       title="Settings"
       subtitle={
-        <p className="serif-italic subtitle-chip text-sm font-semibold text-main-dark/80">
+        <p className="subtitle-mono subtitle-chip text-sm text-main-dark/80">
           Your account
         </p>
       }
     >
       <div
-        className="shadow-solid mt-8 space-y-4 rounded-xl border border-border bg-card p-5"
+        className="shadow-solid mt-8 space-y-4 rounded-lg bg-card p-5"
         style={cardStyle}
       >
         {isGuest ? (
@@ -96,7 +96,7 @@ function SettingsPage() {
       </div>
 
       <div
-        className="shadow-solid mt-6 rounded-xl border border-border bg-card p-5"
+        className="shadow-solid mt-6 rounded-lg bg-card p-5"
         style={cardStyle}
       >
         <div className="flex items-center justify-between gap-3">

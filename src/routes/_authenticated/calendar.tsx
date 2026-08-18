@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckIcon, ForwardArrowIcon } from "@/components/icons/PhaseIcons";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -90,13 +90,13 @@ function CalendarPage() {
     <PageShell
       title="Calendar"
       subtitle={
-        <p className="serif-italic subtitle-chip text-sm text-main-dark/80">
-          Your month at a glance
+        <p className="subtitle-mono subtitle-chip text-sm text-main-dark/80">
+          Your monthly wins
         </p>
       }
     >
       <section
-        className="shadow-solid mt-6 rounded-xl border border-border bg-card p-3"
+        className="shadow-solid mt-6 rounded-lg bg-card p-3"
         style={cardShadow}
       >
         <div className="flex items-center justify-between">
@@ -106,7 +106,7 @@ function CalendarPage() {
             aria-label="Previous month"
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
           >
-            <ChevronLeft className="size-4" />
+            <ForwardArrowIcon className="size-4 rotate-180" />
           </Button>
           <h2 className="font-display text-base text-main-dark">
             {cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
@@ -117,7 +117,7 @@ function CalendarPage() {
             aria-label="Next month"
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
           >
-            <ChevronRight className="size-4" />
+            <ForwardArrowIcon className="size-4" />
           </Button>
         </div>
 
@@ -147,19 +147,17 @@ function CalendarPage() {
                   )}
                 >
                   {date.getDate()}
-                  <span
-                    className="h-1 w-4"
-                    style={{
-                      backgroundColor:
-                        scheduled.length === 0
-                          ? "transparent"
-                          : rate === 1
-                            ? "var(--main-palette-strawberry-4)"
-                            : rate > 0
-                              ? "var(--main-palette-strawberry-5)"
-                              : "var(--main-dark)",
-                    }}
-                  />
+                  <span className="h-1.5 w-7 overflow-hidden bg-main-palette-strawberry-1">
+                    {scheduled.length > 0 && (
+                      <span
+                        className="block h-full"
+                        style={{
+                          width: `${Math.round(rate * 100)}%`,
+                          backgroundColor: "var(--main-palette-strawberry-4)",
+                        }}
+                      />
+                    )}
+                  </span>
                 </button>
               );
             })}
@@ -168,7 +166,7 @@ function CalendarPage() {
       </section>
 
       <section
-        className="shadow-solid mt-6 rounded-xl border border-border bg-card p-5"
+        className="shadow-solid mt-6 rounded-lg bg-card p-5"
         style={cardShadow}
       >
         <h2 className="font-display text-center text-lg text-main-dark">
@@ -186,62 +184,79 @@ function CalendarPage() {
         {detail.scheduled.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">No habits scheduled on this day.</p>
         ) : (
-          <ul className="mt-4 space-y-2.5">
-            {detail.scheduled.map((habit) => {
-              const completed = isDone(habit, selected);
-              const skipped = isSkipped(habit, selected);
-              const accent = difficultyColor(habit.difficulty);
-              return (
-                <li
-                  key={habit.id}
-                  className="flex items-center gap-3 rounded-lg border border-border px-3 py-2"
-                  style={{ borderLeft: `4px solid ${accent}` }}
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm text-main-dark">
-                    {habit.name}
-                  </span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {completed ? (
-                      <button
-                        type="button"
-                        aria-label={`Unmark ${habit.name}`}
-                        onClick={() => toggleCompletion(habit.id, selected)}
-                        className="bouncy-press flex size-8 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
-                      >
-                        <Check className="size-4 text-main-light" />
-                      </button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        disabled={skipped}
-                        onClick={() => toggleCompletion(habit.id, selected)}
-                        className="bouncy-press rounded-lg text-main-light hover:opacity-90"
-                        style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
-                      >
-                        Done
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      aria-pressed={skipped}
-                      disabled={completed}
-                      onClick={() =>
-                        skipped ? void toggleSkip(habit.id, selected) : requestSkip(habit)
-                      }
-                      className="bouncy-press rounded-lg text-main-light hover:opacity-90"
-                      style={{
-                        backgroundColor: "var(--main-palette-strawberry-1)",
-                        opacity: skipped ? 1 : 0.85,
-                      }}
-                    >
-                      {skipped ? "Skipped" : "Skip"}
-                    </Button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            {(
+              [
+                ["Completed", detail.completed],
+                ["Incomplete", detail.incomplete],
+                ["Skipped", detail.skipped],
+              ] as const
+            ).map(([label, habitsInGroup]) =>
+              habitsInGroup.length === 0 ? null : (
+                <section key={label} className="mt-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-main-dark/60">
+                    {label}
+                  </h3>
+                  <ul className="mt-2 space-y-2.5">
+                    {habitsInGroup.map((habit) => {
+                      const completed = isDone(habit, selected);
+                      const skipped = isSkipped(habit, selected);
+                      const accent = difficultyColor(habit.difficulty);
+                      return (
+                        <li
+                          key={habit.id}
+                          className="flex items-center gap-3 rounded-lg border-4 px-3 py-2"
+                          style={{ borderColor: accent }}
+                        >
+                          <span className="min-w-0 flex-1 truncate text-sm text-main-dark">
+                            {habit.name}
+                          </span>
+                          <div className="flex shrink-0 items-center gap-2">
+                            {completed ? (
+                              <button
+                                type="button"
+                                aria-label={`Unmark ${habit.name}`}
+                                onClick={() => toggleCompletion(habit.id, selected)}
+                                className="bouncy-press flex size-8 items-center justify-center rounded-lg"
+                                style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
+                              >
+                                <CheckIcon className="size-4 text-main-light" />
+                              </button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                disabled={skipped}
+                                onClick={() => toggleCompletion(habit.id, selected)}
+                                className="bouncy-press rounded-lg text-main-light hover:opacity-90"
+                                style={{ backgroundColor: "var(--main-palette-strawberry-5)" }}
+                              >
+                                Done
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              aria-pressed={skipped}
+                              disabled={completed}
+                              onClick={() =>
+                                skipped ? void toggleSkip(habit.id, selected) : requestSkip(habit)
+                              }
+                              className="bouncy-press rounded-lg text-main-light hover:opacity-90"
+                              style={{
+                                backgroundColor: "var(--main-palette-strawberry-1)",
+                                opacity: skipped ? 1 : 0.85,
+                              }}
+                            >
+                              {skipped ? "Skipped" : "Skip"}
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ),
+            )}
+          </>
         )}
       </section>
 
