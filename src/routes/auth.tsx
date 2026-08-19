@@ -29,6 +29,14 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+function authErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : "Something went wrong";
+  if (/rate limit/i.test(message)) {
+    return "Too many emails sent recently — please wait a few minutes and try again.";
+  }
+  return message;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -37,6 +45,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [pendingConfirm, setPendingConfirm] = useState<string | null>(null);
   const [needsConfirm, setNeedsConfirm] = useState(false);
+  const [pendingReset, setPendingReset] = useState<string | null>(null);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -58,7 +67,7 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
         });
         if (error) throw error;
         if (data.session) {
@@ -77,7 +86,7 @@ function AuthPage() {
         }
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong");
+      toast.error(authErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -89,10 +98,29 @@ function AuthPage() {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: target,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(authErrorMessage(error));
     else toast.success(`Confirmation link sent to ${target}.`);
+  };
+
+  const sendResetLink = async () => {
+    if (!email) {
+      toast.error("Enter your email first.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset`,
+      });
+      if (error) throw error;
+      setPendingReset(email);
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const google = async () => {
@@ -121,19 +149,36 @@ function AuthPage() {
         {pendingConfirm ? (
           <div className="mt-6 space-y-4 text-center">
             <p className="text-sm text-main-dark">
-              We sent a confirmation link to <strong>{pendingConfirm}</strong>. Click it, then come
-              back and sign in.
+              If <strong>{pendingConfirm}</strong> is new here, check your inbox for a
+              confirmation link to finish setting up your account.
             </p>
-            <Button variant="outline" className="bouncy-press w-full" onClick={() => void resend()}>
-              Resend confirmation email
-            </Button>
+            <p className="text-sm text-main-dark/70">
+              Already have an account? You don't need to wait for an email — just sign in.
+            </p>
             <button
               type="button"
-              className="w-full text-center text-sm text-main-dark/70 underline-offset-4 hover:underline"
+              className="w-full text-center text-sm font-semibold text-main-dark underline-offset-4 hover:underline"
               onClick={() => {
                 setPendingConfirm(null);
                 setMode("signin");
               }}
+            >
+              Sign in instead
+            </button>
+            <Button variant="outline" className="bouncy-press w-full" onClick={() => void resend()}>
+              Resend confirmation email
+            </Button>
+          </div>
+        ) : pendingReset ? (
+          <div className="mt-6 space-y-4 text-center">
+            <p className="text-sm text-main-dark">
+              If <strong>{pendingReset}</strong> has an account, we've sent a link to reset your
+              password.
+            </p>
+            <button
+              type="button"
+              className="w-full text-center text-sm font-semibold text-main-dark underline-offset-4 hover:underline"
+              onClick={() => setPendingReset(null)}
             >
               Back to sign in
             </button>
@@ -163,6 +208,15 @@ function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
               />
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  className="block text-right text-xs text-main-dark/70 underline-offset-4 hover:underline"
+                  onClick={() => void sendResetLink()}
+                >
+                  Forgot password?
+                </button>
+              )}
             </div>
 
             <Button

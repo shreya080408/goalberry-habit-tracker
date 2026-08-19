@@ -1,8 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { PageShell } from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/profile";
@@ -34,6 +47,7 @@ function SettingsPage() {
   const qc = useQueryClient();
   const { session, isGuest } = useSession();
   const { includeSkips, setIncludeSkips } = useProfile();
+  const [deleting, setDeleting] = useState(false);
 
   const signOut = async () => {
     await qc.cancelQueries();
@@ -41,6 +55,24 @@ function SettingsPage() {
     await supabase.auth.signOut();
     chooseGuest();
     void navigate({ to: "/auth", replace: true });
+  };
+
+  const deleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const { error } = await supabase.rpc("delete_own_account");
+      if (error) throw error;
+      await qc.cancelQueries();
+      qc.clear();
+      await supabase.auth.signOut();
+      chooseGuest();
+      toast.success("Your account and all its data have been deleted.");
+      void navigate({ to: "/auth", replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't delete your account.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -106,6 +138,50 @@ function SettingsPage() {
           <Switch id="include-skips" checked={includeSkips} onCheckedChange={setIncludeSkips} />
         </div>
       </div>
+
+      {!isGuest && (
+        <div
+          className="shadow-solid mt-6 space-y-3 rounded-lg bg-card p-5"
+          style={cardStyle}
+        >
+          <div>
+            <p className="text-xs uppercase tracking-wide text-destructive/80">Danger zone</p>
+            <p className="mt-1 text-sm text-main-dark/70">
+              Permanently delete your account and all your habits, streaks and rewards. This
+              can't be undone.
+            </p>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="bouncy-press">
+                Delete account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently deletes your account, along with every habit, streak, reward
+                  and completion tied to it. This action can't be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleting}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void deleteAccount();
+                  }}
+                >
+                  {deleting ? "Deleting…" : "Delete my account"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
     </PageShell>
   );
 }

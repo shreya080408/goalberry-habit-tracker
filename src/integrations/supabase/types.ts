@@ -110,6 +110,7 @@ export type Database = {
     }
     Functions: {
       claim_reward: { Args: { _reward_id: string }; Returns: number }
+      delete_own_account: { Args: never; Returns: undefined }
       points_balance: { Args: never; Returns: number }
       skip_habit: { Args: { _day: string; _habit_id: string }; Returns: number }
     }
