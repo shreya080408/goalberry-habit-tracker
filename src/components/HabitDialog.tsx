@@ -47,7 +47,9 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
-  const [difficulty, setDifficulty] = useState(1);
+  const [difficulty, setDifficulty] = useState(3);
+  const [startMode, setStartMode] = useState<"today" | "custom">("today");
+  const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
@@ -55,7 +57,10 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
     setName(habit?.name ?? "");
     setDescription(habit?.description ?? "");
     setDays(habit?.days ?? [0, 1, 2, 3, 4, 5, 6]);
-    setDifficulty(habit?.difficulty ?? 1);
+    setDifficulty(habit?.difficulty ?? 3);
+    const initialStart = habit?.startDate ? new Date(`${habit.startDate}T00:00:00`) : new Date();
+    setStartDate(initialStart);
+    setStartMode(!habit || habit.startDate === toDateKey(new Date()) ? "today" : "custom");
     setEndDate(habit?.endDate ? new Date(`${habit.endDate}T00:00:00`) : undefined);
   }, [open, habit]);
 
@@ -150,6 +155,53 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
           </div>
 
           <div className="space-y-6">
+            <FieldLabel>Start date</FieldLabel>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant={startMode === "today" ? "default" : "outline"}
+                className="rounded-lg"
+                onClick={() => {
+                  setStartMode("today");
+                  setStartDate(new Date());
+                }}
+              >
+                Today
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={startMode === "custom" ? "default" : "outline"}
+                    className="justify-start gap-2 rounded-lg"
+                    onClick={() => setStartMode("custom")}
+                  >
+                    <CalendarIcon className="size-4" />
+                    {startMode === "custom"
+                      ? startDate.toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(d) => {
+                      if (!d) return;
+                      setStartDate(d);
+                      setStartMode("custom");
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <div className="space-y-6">
             <FieldLabel>End date (optional)</FieldLabel>
             <div className="flex items-center gap-2">
               <Popover>
@@ -191,6 +243,7 @@ export function HabitDialog({ open, onOpenChange, habit, onSubmit }: Props) {
                 description,
                 days,
                 difficulty,
+                startDate: toDateKey(startDate),
                 endDate: endDate ? toDateKey(endDate) : null,
               });
               onOpenChange(false);

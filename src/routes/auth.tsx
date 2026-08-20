@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ function authErrorMessage(error: unknown): string {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,16 +49,22 @@ function AuthPage() {
   const [pendingReset, setPendingReset] = useState<string | null>(null);
 
   useEffect(() => {
+    // _authenticated's beforeLoad (and any queries already keyed on the
+    // signed-out state) must be invalidated *before* we navigate away, or the
+    // route can render off a stale "no user" match and stay blank until a
+    // manual refresh forces a clean beforeLoad run.
+    const goHome = () => void router.invalidate().then(() => navigate({ to: "/" }));
+
     void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void navigate({ to: "/" });
+      if (data.session) goHome();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-        void navigate({ to: "/" });
+        goHome();
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, router]);
 
   const submit = async () => {
     setBusy(true);

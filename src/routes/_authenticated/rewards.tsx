@@ -59,6 +59,7 @@ function Rewards() {
   const [name, setName] = useState("");
   const [points, setPoints] = useState("100");
   const [claimTarget, setClaimTarget] = useState<Reward | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Reward | null>(null);
 
   const canSave = name.trim().length > 0 && Number(points) > 0;
 
@@ -131,7 +132,7 @@ function Rewards() {
                   size="icon"
                   aria-label={`Delete ${reward.name}`}
                   className="text-destructive"
-                  onClick={() => deleteReward(reward.id)}
+                  onClick={() => setDeleteTarget(reward)}
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -189,7 +190,7 @@ function Rewards() {
                   size="icon"
                   aria-label={`Delete ${reward.name}`}
                   className="text-destructive"
-                  onClick={() => deleteReward(reward.id)}
+                  onClick={() => setDeleteTarget(reward)}
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -278,6 +279,30 @@ function Rewards() {
               }}
             >
               Confirm claim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Delete this reward?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{deleteTarget?.name}</strong> will be permanently deleted
+              {deleteTarget?.claimedAt ? " from your claimed rewards" : ""}. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) deleteReward(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+            >
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

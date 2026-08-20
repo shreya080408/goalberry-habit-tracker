@@ -27,6 +27,7 @@ export type HabitInput = {
   description?: string | null;
   days: number[];
   difficulty: number;
+  startDate: string;
   endDate?: string | null;
 };
 
@@ -290,7 +291,7 @@ export function useHabits() {
             description: input.description?.trim() || null,
             days: input.days,
             difficulty: input.difficulty,
-            startDate: toDateKey(now),
+            startDate: input.startDate,
             endDate: input.endDate || null,
             createdAt: now.toISOString(),
             completions: [],
@@ -304,6 +305,7 @@ export function useHabits() {
         description: input.description?.trim() || null,
         days: input.days,
         difficulty: input.difficulty,
+        start_date: input.startDate,
         end_date: input.endDate || null,
       });
       if (error) throw error;
@@ -323,6 +325,7 @@ export function useHabits() {
                   description: patch.description?.trim() || null,
                   days: patch.days,
                   difficulty: patch.difficulty,
+                  startDate: patch.startDate,
                   endDate: patch.endDate || null,
                 }
               : h,
@@ -337,6 +340,7 @@ export function useHabits() {
           description: patch.description?.trim() || null,
           days: patch.days,
           difficulty: patch.difficulty,
+          start_date: patch.startDate,
           end_date: patch.endDate || null,
         })
         .eq("id", id);

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/auth/reset")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const router = useRouter();
   const ran = useRef(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -68,6 +69,9 @@ function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success("Password updated — you're signed in.");
+      // Invalidate before navigating — otherwise _authenticated's beforeLoad
+      // can render off a stale "no user" match and stay blank until refreshed.
+      await router.invalidate();
       void navigate({ to: "/" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Couldn't update your password.");

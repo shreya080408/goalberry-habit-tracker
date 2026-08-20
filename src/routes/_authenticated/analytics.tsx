@@ -16,6 +16,7 @@ import {
   successRate,
   useHabits,
 } from "@/lib/habits";
+import { useProfile } from "@/lib/profile";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
@@ -141,8 +142,8 @@ function StreakPill({ value, label }: { value: number; label: string }) {
 
 function Analytics() {
   const { habits } = useHabits();
+  const { includeSkips, setIncludeSkips } = useProfile();
   const [range, setRange] = useState<(typeof RANGES)[number]["key"]>("weekly");
-  const [includeSkips, setIncludeSkips] = useState(true);
   const [focusHabit, setFocusHabit] = useState<string>("all");
 
   const days = RANGES.find((r) => r.key === range)!.days;

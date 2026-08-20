@@ -137,7 +137,7 @@ function Index() {
                         setExpanded((prev) => ({ ...prev, [habit.id]: !prev[habit.id] }))
                       }
                     >
-                      show desc
+                      {isOpen ? "hide desc" : "show desc"}
                       <ChevronDown
                         className={`size-3 transition-transform ${isOpen ? "rotate-180" : ""}`}
                       />

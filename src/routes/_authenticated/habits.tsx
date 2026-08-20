@@ -3,6 +3,16 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { PlusIcon, StreakIcon } from "@/components/icons/PhaseIcons";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { HabitDialog } from "@/components/HabitDialog";
 import { PageShell } from "@/components/PageShell";
 import { StrawberryIcon } from "@/components/icons/StrawberryIcon";
@@ -37,6 +47,7 @@ function AllHabits() {
   const { habits, loaded, createHabit, updateHabit, deleteHabit } = useHabits();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Habit | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Habit | null>(null);
 
   return (
     <PageShell
@@ -117,7 +128,7 @@ function AllHabits() {
                 size="icon"
                 aria-label={`Delete ${habit.name}`}
                 className="text-destructive"
-                onClick={() => deleteHabit(habit.id)}
+                onClick={() => setDeleteTarget(habit)}
               >
                 <Trash2 className="size-4" />
               </Button>
@@ -133,6 +144,30 @@ function AllHabits() {
         habit={editing}
         onSubmit={(values) => (editing ? updateHabit(editing.id, values) : createHabit(values))}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Delete this habit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{deleteTarget?.name}</strong> and all its completions, skips and streak
+              history will be permanently deleted. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) deleteHabit(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageShell>
   );
 }

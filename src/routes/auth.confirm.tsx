@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { StrawberryIcon } from "@/components/icons/StrawberryIcon";
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/auth/confirm")({
 
 function ConfirmPage() {
   const navigate = useNavigate();
+  const router = useRouter();
   const ran = useRef(false);
   const [failed, setFailed] = useState(false);
 
@@ -43,6 +44,9 @@ function ConfirmPage() {
 
         if (data.session) {
           toast.success("You're confirmed and signed in!");
+          // Invalidate before navigating — otherwise _authenticated's beforeLoad
+          // can render off a stale "no user" match and stay blank until refreshed.
+          await router.invalidate();
           void navigate({ to: "/" });
         } else {
           toast.info("Your email is confirmed — please sign in to continue.");
@@ -54,7 +58,7 @@ function ConfirmPage() {
         void navigate({ to: "/auth" });
       }
     })();
-  }, [navigate]);
+  }, [navigate, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
